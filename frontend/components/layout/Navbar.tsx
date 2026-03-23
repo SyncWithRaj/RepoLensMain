@@ -33,7 +33,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-[#161b22] border-b border-[#30363d] text-[#c9d1d9] px-6 py-4 flex items-center justify-between">
+    <nav className="bg-[#161b22] border-b border-[var(--color-gh-border)] text-[#c9d1d9] px-6 py-4 flex items-center justify-between">
       <div className="flex items-center space-x-6">
         <Link href="/" className="flex items-center space-x-2 text-white hover:text-gray-300 transition">
           <svg height="32" viewBox="0 0 16 16" version="1.1" width="32" fill="currentColor">
@@ -58,7 +58,7 @@ export default function Navbar() {
             </Link>
             <button 
               onClick={handleLogout}
-              className="text-sm text-[#da3633] hover:text-[#b62324] transition font-medium bg-[#21262d] border border-[#30363d] px-3 py-1.5 rounded-lg shadow-sm"
+              className="text-sm text-[#da3633] hover:text-[#b62324] transition font-medium bg-[#21262d] border border-[var(--color-gh-border)] px-3 py-1.5 rounded-lg shadow-sm"
             >
               Logout
             </button>

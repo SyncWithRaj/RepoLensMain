@@ -34,15 +34,9 @@ export default function ChatPanel({
         filePath: ref.file,
         content: res.data.content,
         language: getLanguage(ref.file),
+        startLine: ref.startLine,
+        endLine: ref.endLine
       });
-
-      setTimeout(() => {
-        setEditorState((prev: any) => ({
-          ...prev,
-          startLine: ref.startLine,
-          endLine: ref.endLine,
-        }));
-      }, 100);
     } catch (err) {
       console.error("Open reference error:", err);
     }
@@ -57,7 +51,7 @@ export default function ChatPanel({
 
   return (
     <div className="flex flex-col h-full bg-[#18181b]">
-      <div className="p-3 border-b border-[#30363d] bg-[#18181b] sticky top-0 z-10 flex flex-row items-center justify-between">
+      <div className="p-3 border-b border-[var(--color-gh-border)] bg-[#18181b] sticky top-0 z-10 flex flex-row items-center justify-between">
         <h3 className="text-[11px] font-bold tracking-wider uppercase text-[#8b949e] flex items-center gap-2">
           Chat
         </h3>
@@ -66,7 +60,7 @@ export default function ChatPanel({
       <div className="flex-1 overflow-y-auto p-3 space-y-4 bg-[#18181b] custom-scrollbar">
         {messages.length === 0 ? (
           <div className="text-center py-8">
-            <svg className="mx-auto h-10 w-10 text-[#30363d] mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="mx-auto h-10 w-10 text-[var(--color-gh-border)] mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
             </svg>
             <p className="text-xs text-[#8b949e]">Ask a question about the code</p>
@@ -78,11 +72,11 @@ export default function ChatPanel({
                 className={`max-w-[90%] border rounded-lg overflow-hidden ${
                   msg.role === "user"
                     ? "bg-[#2b2d31] border-transparent"
-                    : "bg-[#1e1e1e] border-[#30363d]"
+                    : "bg-[#1e1e1e] border-[var(--color-gh-border)]"
                 }`}
               >
                 <div className={`px-2.5 py-1 text-[10px] font-semibold flex items-center gap-1.5 ${
-                  msg.role === "user" ? "bg-[#2b2d31] text-[#c9d1d9]" : "bg-[#1e1e1e] text-[#58a6ff] border-b border-[#30363d]"
+                  msg.role === "user" ? "bg-[#2b2d31] text-[#c9d1d9]" : "bg-[#1e1e1e] text-[#58a6ff] border-b border-[var(--color-gh-border)]"
                 }`}>
                   {msg.role === "assistant" && (
                      <svg className="w-3 h-3 text-[#58a6ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -119,8 +113,8 @@ export default function ChatPanel({
 
         {loading && (
           <div className="flex items-start">
-            <div className="max-w-[90%] border border-[#30363d] rounded-lg overflow-hidden bg-[#1e1e1e]">
-              <div className="px-2.5 py-1 text-[10px] font-semibold border-b border-[#30363d] bg-[#1e1e1e] text-[#58a6ff] flex items-center gap-1.5">
+            <div className="max-w-[90%] border border-[var(--color-gh-border)] rounded-lg overflow-hidden bg-[#1e1e1e]">
+              <div className="px-2.5 py-1 text-[10px] font-semibold border-b border-[var(--color-gh-border)] bg-[#1e1e1e] text-[#58a6ff] flex items-center gap-1.5">
                 <svg className="w-3 h-3 text-[#58a6ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
@@ -139,8 +133,8 @@ export default function ChatPanel({
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-3 bg-[#18181b] border-t border-[#30363d]">
-        <div className="bg-[#1e1e1e] border border-[#30363d] rounded-[4px] focus-within:border-[#007acc] transition overflow-hidden flex flex-col">
+      <div className="p-3 bg-[#18181b] border-t border-[var(--color-gh-border)]">
+        <div className="bg-[#1e1e1e] border border-[var(--color-gh-border)] rounded-[4px] focus-within:border-[#007acc] transition overflow-hidden flex flex-col">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -151,7 +145,7 @@ export default function ChatPanel({
           />
           <div className="flex justify-between items-center px-2 py-1.5 bg-[#1e1e1e]">
             <span className="text-[9px] text-[#8b949e]">
-              <kbd className="px-1 border border-[#30363d] rounded-[2px] bg-[#2d2d2d]">Enter</kbd> to send
+              <kbd className="px-1 border border-[var(--color-gh-border)] rounded-[2px] bg-[#2d2d2d]">Enter</kbd> to send
             </span>
             <button
               onClick={sendMessage}

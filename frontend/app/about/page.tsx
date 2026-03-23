@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function AboutPage() {
   return (
     <div className="max-w-4xl mx-auto py-16 px-6">
-      <h1 className="text-4xl font-bold mb-8 pb-4 border-b border-[#30363d] text-white">
+      <h1 className="text-4xl font-bold mb-8 pb-4 border-b border-[var(--color-gh-border)] text-white">
         About <span className="text-[#58a6ff]">RepoLens</span>
       </h1>
       
@@ -35,7 +35,7 @@ export default function AboutPage() {
           </ol>
         </section>
 
-        <section className="bg-[#161b22] p-8 rounded-2xl border border-[#30363d] mt-12 text-center shadow-lg">
+        <section className="bg-[#161b22] p-8 rounded-2xl border border-[var(--color-gh-border)] mt-12 text-center shadow-lg">
           <h2 className="text-xl font-semibold mb-3 text-white">Ready to explore your code?</h2>
           <Link 
             href="/dashboard"

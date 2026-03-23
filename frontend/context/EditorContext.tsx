@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState } from "react";
 
-interface EditorState {
+export interface EditorTab {
   filePath: string;
   content: string;
   language: string;
@@ -13,10 +13,43 @@ interface EditorState {
 const EditorContext = createContext<any>(null);
 
 export const EditorProvider = ({ children }: any) => {
-  const [editorState, setEditorState] = useState<EditorState | null>(null);
+  const [tabs, setTabs] = useState<EditorTab[]>([]);
+  const [activeTabId, setActiveTabId] = useState<string | null>(null);
+
+  const openTab = (tab: EditorTab) => {
+    setTabs(prev => {
+      const exists = prev.find(t => t.filePath === tab.filePath);
+      if (!exists) {
+        return [...prev, tab];
+      }
+      return prev.map(t => t.filePath === tab.filePath ? { ...t, ...tab } : t);
+    });
+    setActiveTabId(tab.filePath);
+  };
+
+  const closeTab = (e?: React.MouseEvent, filePath?: string) => {
+    if (e) e.stopPropagation();
+    if (!filePath) return;
+    
+    setTabs(prev => {
+      const filtered = prev.filter(t => t.filePath !== filePath);
+      if (activeTabId === filePath) {
+         setActiveTabId(filtered.length > 0 ? filtered[filtered.length - 1].filePath : null);
+      }
+      return filtered;
+    });
+  };
+
+  // Backwards compatible setter
+  const setEditorState = (state: EditorTab) => {
+    openTab(state);
+  };
+
+  // Backwards compatible getter
+  const editorState = tabs.find(t => t.filePath === activeTabId) || null;
 
   return (
-    <EditorContext.Provider value={{ editorState, setEditorState }}>
+    <EditorContext.Provider value={{ tabs, activeTabId, setActiveTabId, closeTab, setEditorState, editorState }}>
       {children}
     </EditorContext.Provider>
   );

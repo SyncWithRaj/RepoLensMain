@@ -86,14 +86,14 @@ export default function Dashboard() {
 
     return (
         <div className="max-w-6xl mx-auto w-full py-12 px-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-[#30363d] pb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-[var(--color-gh-border)] pb-6">
                 <div>
                     <h1 className="text-3xl font-semibold text-white tracking-tight">Repositories</h1>
                     <p className="text-[#8b949e] mt-1 text-sm">Manage and chat with indexed GitHub repositories.</p>
                 </div>
             </div>
 
-            <div className="mb-10 p-8 bg-[#161b22] border border-[#30363d] rounded-2xl shadow-md">
+            <div className="mb-10 p-8 bg-[#161b22] border border-[var(--color-gh-border)] rounded-2xl shadow-md">
                 <h2 className="text-lg font-medium text-white mb-4">Clone a new repository</h2>
                 <div className="flex flex-col sm:flex-row gap-4">
                     <input
@@ -101,7 +101,7 @@ export default function Dashboard() {
                         placeholder="https://github.com/owner/repo"
                         value={githubUrl}
                         onChange={(e) => setGithubUrl(e.target.value)}
-                        className="flex-grow p-3.5 rounded-xl bg-[#010409] border border-[#30363d] text-white focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] transition shadow-inner"
+                        className="flex-grow p-3.5 rounded-xl bg-[#010409] border border-[var(--color-gh-border)] text-white focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] transition shadow-inner"
                     />
                     <button
                         onClick={cloneRepo}
@@ -115,7 +115,7 @@ export default function Dashboard() {
 
             <div className="space-y-4">
                 {repos.length === 0 ? (
-                    <div className="text-center py-20 px-4 bg-[#0d1117] border border-dashed border-[#30363d] rounded-2xl">
+                    <div className="text-center py-20 px-4 bg-[#0d1117] border border-dashed border-[var(--color-gh-border)] rounded-2xl">
                         <svg className="mx-auto h-12 w-12 text-[#8b949e] mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
                         </svg>
@@ -126,7 +126,7 @@ export default function Dashboard() {
                     repos.map((repo) => (
                         <div
                             key={repo._id}
-                            className="bg-[#0d1117] p-6 rounded-2xl border border-[#30363d] flex flex-col md:flex-row justify-between md:items-center gap-4 hover:bg-[#161b22] transition shadow-sm hover:shadow"
+                            className="bg-[#0d1117] p-6 rounded-2xl border border-[var(--color-gh-border)] flex flex-col md:flex-row justify-between md:items-center gap-4 hover:bg-[#161b22] transition shadow-sm hover:shadow"
                         >
                             <div className="flex items-start gap-4">
                                 <svg className="w-5 h-5 text-[#8b949e] mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,7 +141,7 @@ export default function Dashboard() {
                                             <span className={`w-2.5 h-2.5 rounded-full ${
                                                 repo.status === "cloned" ? "bg-gray-400" :
                                                 repo.status === "indexing" ? "bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.6)]" :
-                                                repo.status === "indexed" ? "bg-[#3fb950] shadow-[0_0_8px_rgba(63,185,80,0.6)]" : "bg-blue-400"
+                                                repo.status === "indexed" ? "bg-[#2ea043] shadow-[0_0_8px_rgba(63,185,80,0.6)]" : "bg-blue-400"
                                             }`}></span>
                                             {repo.status.charAt(0).toUpperCase() + repo.status.slice(1)}
                                         </span>
@@ -154,7 +154,7 @@ export default function Dashboard() {
                                 {repo.status === "cloned" && (
                                     <button
                                         onClick={() => indexRepo(repo._id)}
-                                        className="text-sm bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-[#c9d1d9] font-medium px-5 py-2.5 rounded-xl transition shadow-sm"
+                                        className="text-sm bg-[#21262d] hover:bg-[var(--color-gh-border)] border border-[var(--color-gh-border)] text-[#c9d1d9] font-medium px-5 py-2.5 rounded-xl transition shadow-sm"
                                     >
                                         Index Repo
                                     </button>
@@ -184,7 +184,7 @@ export default function Dashboard() {
 
                                 <button
                                     onClick={() => deleteRepo(repo._id)}
-                                    className="text-sm bg-[#21262d] hover:bg-[#da3633] hover:text-white hover:border-transparent border border-[#30363d] text-[#c9d1d9] font-medium px-5 py-2.5 rounded-xl transition shadow-sm"
+                                    className="text-sm bg-[#21262d] hover:bg-[#da3633] hover:text-white hover:border-transparent border border-[var(--color-gh-border)] text-[#c9d1d9] font-medium px-5 py-2.5 rounded-xl transition shadow-sm"
                                     title="Delete Repository"
                                 >
                                     Delete

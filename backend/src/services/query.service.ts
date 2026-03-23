@@ -1,10 +1,14 @@
 import { CodeEntity } from "../models/codeEntity.model.js";
+import { Repository } from "../models/repo.model.js";
 import { generateAnswer } from "./llm.service.js";
 import { searchVectors } from "./vector.service.js";
+import path from "path";
 
 export const askQuestion = async (repoId: string, question: string) => {
+    const repo = await Repository.findById(repoId);
+    if (!repo) throw new Error("Repository not found");
 
-    const results = await searchVectors(repoId, question, 3);
+    const results = await searchVectors(repoId, question);
 
     console.log("VECTOR RESULTS:", results);
 
@@ -21,16 +25,19 @@ export const askQuestion = async (repoId: string, question: string) => {
     const context = entityIds.map((id: string, index: number) => {
 
         const entity = entityMap.get(id);
+        if (!entity) return null;
+        
+        const relativePath = path.relative(repo.localPath, entity.filePath).replace(/\\/g, '/');
 
         return {
-            filePath: entity.filePath,
+            filePath: relativePath,
             code: entity.content,
             startLine: entity.startLine,
             endLine: entity.endLine,
             score: results[index][1]
         };
 
-    });
+    }).filter((c: any) => c !== null);
 
     const prompt = `
 You are RepoLens, an AI assistant that helps developers understand a codebase.
@@ -64,17 +71,17 @@ Response format:
 
     const answer = await generateAnswer(prompt);
 
-    const sources = context
+    const references = context
         .sort((a, b) => b.score - a.score)
         .slice(0, 3)
         .map(c => ({
-            filePath: c.filePath,
+            file: c.filePath,
             startLine: c.startLine,
             endLine: c.endLine
         }));
 
     return {
         answer,
-        sources
+        references
     };
 };

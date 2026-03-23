@@ -5,6 +5,7 @@ import { parseRepoController } from "../controllers/parser.controller.js";
 import { getRepositoryEntities } from "../controllers/codeEntity.controller.js";
 import { getRepositoryoRelations}from "../controllers/relationship.controller.js"
 import { getRepoFilesController } from "../controllers/fileMetadata.controller.js";
+import { getRepositoryGraph } from "../controllers/graph.controller.js";
 
 const router = Router();
 
@@ -17,5 +18,6 @@ router.post("/:id/parse", protect, parseRepoController);
 router.get("/:id/entities", protect, getRepositoryEntities);
 router.get("/:id/relations", protect, getRepositoryoRelations)
 router.get("/:id/files", getRepoFilesController);
+router.get("/:id/graph", protect, getRepositoryGraph);
 
 export default router;

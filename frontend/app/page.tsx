@@ -26,7 +26,7 @@ export default function Home() {
           </Link>
           <Link 
             href="/about" 
-            className="flex items-center justify-center px-8 py-3.5 text-lg font-semibold rounded-full bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] border border-[#30363d] transition w-full sm:w-auto shadow-sm hover:shadow-md"
+            className="flex items-center justify-center px-8 py-3.5 text-lg font-semibold rounded-full bg-[#21262d] hover:bg-[var(--color-gh-border)] text-[#c9d1d9] border border-[var(--color-gh-border)] transition w-full sm:w-auto shadow-sm hover:shadow-md"
           >
             Learn More
           </Link>
@@ -34,8 +34,8 @@ export default function Home() {
 
         {/* Feature Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-          <div className="p-8 rounded-2xl bg-[#161b22] border border-[#30363d] shadow-md hover:border-[#58a6ff]/50 transition duration-300">
-            <div className="w-12 h-12 rounded-xl bg-[#1f242c] flex items-center justify-center mb-5 border border-[#30363d] shadow-inner">
+          <div className="p-8 rounded-2xl bg-[#161b22] border border-[var(--color-gh-border)] shadow-md hover:border-[#58a6ff]/50 transition duration-300">
+            <div className="w-12 h-12 rounded-xl bg-[#1f242c] flex items-center justify-center mb-5 border border-[var(--color-gh-border)] shadow-inner">
               <svg className="w-6 h-6 text-[#58a6ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
@@ -44,9 +44,9 @@ export default function Home() {
             <p className="text-sm text-[#8b949e] leading-relaxed">Easily pull any repository and let our engine index the codebase into a vector database for semantic search.</p>
           </div>
 
-          <div className="p-8 rounded-2xl bg-[#161b22] border border-[#30363d] shadow-md hover:border-[#3fb950]/50 transition duration-300">
-            <div className="w-12 h-12 rounded-xl bg-[#1f242c] flex items-center justify-center mb-5 border border-[#30363d] shadow-inner">
-              <svg className="w-6 h-6 text-[#3fb950]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="p-8 rounded-2xl bg-[#161b22] border border-[var(--color-gh-border)] shadow-md hover:border-[#2ea043]/50 transition duration-300">
+            <div className="w-12 h-12 rounded-xl bg-[#1f242c] flex items-center justify-center mb-5 border border-[var(--color-gh-border)] shadow-inner">
+              <svg className="w-6 h-6 text-[#2ea043]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
               </svg>
             </div>
@@ -54,8 +54,8 @@ export default function Home() {
             <p className="text-sm text-[#8b949e] leading-relaxed">Ask specific questions about logic, functions, or UI components. Get accurate answers referencing exact lines of code.</p>
           </div>
 
-          <div className="p-8 rounded-2xl bg-[#161b22] border border-[#30363d] shadow-md hover:border-[#a371f7]/50 transition duration-300">
-            <div className="w-12 h-12 rounded-xl bg-[#1f242c] flex items-center justify-center mb-5 border border-[#30363d] shadow-inner">
+          <div className="p-8 rounded-2xl bg-[#161b22] border border-[var(--color-gh-border)] shadow-md hover:border-[#a371f7]/50 transition duration-300">
+            <div className="w-12 h-12 rounded-xl bg-[#1f242c] flex items-center justify-center mb-5 border border-[var(--color-gh-border)] shadow-inner">
               <svg className="w-6 h-6 text-[#a371f7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>

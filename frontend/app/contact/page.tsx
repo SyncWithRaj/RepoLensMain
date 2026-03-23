@@ -3,7 +3,7 @@
 export default function ContactPage() {
   return (
     <div className="max-w-2xl mx-auto py-16 px-6">
-      <h1 className="text-4xl font-bold mb-8 pb-4 border-b border-[#30363d] text-white">
+      <h1 className="text-4xl font-bold mb-8 pb-4 border-b border-[var(--color-gh-border)] text-white">
         Contact Us
       </h1>
       
@@ -12,13 +12,13 @@ export default function ContactPage() {
         Fill out the form below and our team will get back to you shortly.
       </p>
 
-      <form className="bg-[#161b22] p-8 rounded-2xl border border-[#30363d] space-y-6 shadow-lg">
+      <form className="bg-[#161b22] p-8 rounded-2xl border border-[var(--color-gh-border)] space-y-6 shadow-lg">
         <div>
           <label className="block text-sm font-medium text-[#c9d1d9] mb-2">Name</label>
           <input 
             type="text" 
             placeholder="octocat"
-            className="w-full bg-[#010409] border border-[#30363d] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] transition shadow-inner"
+            className="w-full bg-[#010409] border border-[var(--color-gh-border)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] transition shadow-inner"
           />
         </div>
 
@@ -27,7 +27,7 @@ export default function ContactPage() {
           <input 
             type="email" 
             placeholder="octocat@github.com"
-            className="w-full bg-[#010409] border border-[#30363d] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] transition shadow-inner"
+            className="w-full bg-[#010409] border border-[var(--color-gh-border)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] transition shadow-inner"
           />
         </div>
 
@@ -36,7 +36,7 @@ export default function ContactPage() {
           <textarea 
             rows={5}
             placeholder="How can we help you?"
-            className="w-full bg-[#010409] border border-[#30363d] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] transition resize-y shadow-inner"
+            className="w-full bg-[#010409] border border-[var(--color-gh-border)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] transition resize-y shadow-inner"
           ></textarea>
         </div>
 

@@ -19,7 +19,7 @@ export const ask = async (req: Request, res: Response) => {
     res.json({
       success: true,
       answer: result.answer,
-      sources: result.sources
+      references: result.references
     });
 
   } catch (error) {
