@@ -99,13 +99,15 @@ export default function ChatPage() {
 
   if (repoValid === null) {
     return (
-      <div className="h-screen flex items-center justify-center text-[#c9d1d9] bg-[#010409]">
-        <div className="flex flex-col items-center">
-          <svg className="animate-spin h-8 w-8 text-[#58a6ff] mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <p>Loading Workspace...</p>
+      <div className="h-screen flex items-center justify-center text-[#c9d1d9] bg-[#0d1117] relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#58a6ff]/10 blur-[120px] rounded-full pointer-events-none animate-pulse-slow"></div>
+        <div className="flex flex-col items-center relative z-10">
+          <div className="relative mb-6">
+            <div className="w-16 h-16 border-4 border-[#30363d] border-t-[#58a6ff] rounded-full animate-spin"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-[#58a6ff]/20 blur-sm"></div>
+          </div>
+          <p className="text-lg font-medium text-white tracking-wide">Initializing Workspace...</p>
+          <p className="text-sm text-[#8b949e] mt-2">Loading editor, graph, and neural pathways</p>
         </div>
       </div>
     );
@@ -115,26 +117,29 @@ export default function ChatPage() {
   const toggleChat = () => setShowChat(!showChat);
 
   return (
-    <div className="flex flex-grow overflow-hidden bg-[#010409] text-[#c9d1d9] font-sans h-[calc(100vh-74px)] p-2 gap-2">
-      
-      {/* Activity Bar (VSCode style) */}
-      <div className="w-[50px] min-w-[50px] flex flex-col items-center py-4 bg-[#0d1117] rounded-xl border border-[#30363d] shadow-sm z-10 space-y-4">
+    <div className="flex flex-grow overflow-hidden bg-[#0a0c10] text-[#c9d1d9] font-sans h-[calc(100vh-700px)] p-3 gap-3 relative mt-22">
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-[#a371f7]/5 via-[#58a6ff]/5 to-transparent blur-[120px] rounded-full pointer-events-none mix-blend-screen -z-0"></div>
+
+      {/* Activity Bar */}
+      <div className="w-[56px] min-w-[56px] flex flex-col items-center py-5 bg-[#161b22]/80 backdrop-blur-xl rounded-2xl border border-[#30363d]/80 shadow-[0_4px_20px_rgba(0,0,0,0.3)] z-10 space-y-5">
         <button 
           onClick={toggleSidebar}
-          className={`p-2 rounded-xl transition ${activeSidebar === "files" ? "text-[#58a6ff] bg-[#21262d] shadow-sm border border-[#30363d] scale-105" : "text-[#8b949e] hover:text-[#c9d1d9]"}`}
+          className={`p-2.5 rounded-xl transition-all duration-300 relative group ${activeSidebar === "files" ? "text-white bg-[#58a6ff]/10 shadow-inner border border-[#58a6ff]/30 scale-105" : "text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#21262d]"}`}
           title="Explorer"
         >
-          <Files size={22} strokeWidth={1.5} />
+          <Files size={22} strokeWidth={activeSidebar === "files" ? 2 : 1.5} />
+          {activeSidebar === "files" && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#58a6ff] rounded-r-full shadow-[0_0_10px_#58a6ff]"></div>}
         </button>
         <button 
           onClick={toggleChat}
-          className={`p-2 rounded-xl transition ${showChat ? "text-[#2ea043] bg-[#21262d] shadow-sm border border-[#30363d] scale-105" : "text-[#8b949e] hover:text-[#c9d1d9]"}`}
+          className={`p-2.5 rounded-xl transition-all duration-300 relative group ${showChat ? "text-white bg-[#2ea043]/10 shadow-inner border border-[#2ea043]/30 scale-105" : "text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#21262d]"}`}
           title="Chat Panel"
         >
-          <MessageSquare size={22} strokeWidth={1.5} />
+          <MessageSquare size={22} strokeWidth={showChat ? 2 : 1.5} />
+          {showChat && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#2ea043] rounded-r-full shadow-[0_0_10px_#2ea043]"></div>}
         </button>
         <div className="flex-grow"></div>
-        <button className="p-2 text-[#8b949e] hover:text-[#c9d1d9] transition rounded-xl mb-2 hover:scale-110" title="Settings">
+        <button className="p-2.5 text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#21262d] transition-all duration-300 rounded-xl mb-2 focus:outline-none" title="Settings">
           <Settings size={22} strokeWidth={1.5} />
         </button>
       </div>

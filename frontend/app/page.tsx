@@ -1,217 +1,377 @@
 import Link from "next/link";
-import { ArrowRight, Code2, Database, MessageSquare, Zap, Shield, Globe, Network } from "lucide-react";
+import { ArrowRight, Code2, Database, MessageSquare, Zap, Shield, Globe, Network, ChevronRight, Layers, Workflow, Bot } from "lucide-react";
+import Footer from "@/components/layout/Footer";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-grow items-center w-full overflow-hidden selection:bg-[#58a6ff] selection:text-white pb-20">
-      
+    <div className="flex flex-col flex-grow items-center w-full overflow-hidden selection:bg-[#58a6ff] selection:text-white bg-[#0d1117]">
+
       {/* Hero Section */}
-      <section className="relative w-full flex flex-col items-center justify-center pt-32 pb-24 px-6 overflow-hidden">
-        {/* Abstract Background Glows */}
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#58a6ff] opacity-[0.15] blur-[120px] rounded-full pointer-events-none"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-[#a371f7] opacity-[0.15] blur-[120px] rounded-full pointer-events-none"></div>
+      <section className="relative w-full min-h-[90vh] flex flex-col items-center justify-center pt-32 pb-24 px-6 overflow-hidden">
+        {/* Advanced Abstract Background Glows */}
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#58a6ff] opacity-[0.08] blur-[150px] rounded-full pointer-events-none mix-blend-screen animate-pulse-slow"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#a371f7] opacity-[0.08] blur-[150px] rounded-full pointer-events-none mix-blend-screen animate-pulse-slow max-md:hidden"></div>
+        <div className="absolute top-[20%] right-[10%] w-[300px] h-[300px] bg-[#2ea043] opacity-[0.05] blur-[100px] rounded-full pointer-events-none mix-blend-screen"></div>
+
+        {/* Grid Background */}
+        <div className="absolute inset-0 opacity-[0.015] pointer-events-none" style={{ backgroundImage: "url('https://grainy-gradients.vercel.app/noise.svg')" }}></div>
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_40%,#000_20%,transparent_100%)] pointer-events-none"></div>
 
         <div className="max-w-5xl w-full text-center relative z-10 animate-fade-in-up">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#161b22] border border-[#30363d] text-xs font-semibold text-[#8b949e] mb-8 shadow-sm">
-            <span className="flex h-2 w-2 rounded-full bg-[#3fb950] animate-pulse"></span>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#161b22]/80 backdrop-blur-md border border-[#30363d] text-xs font-semibold text-[#8b949e] mb-8 shadow-sm hover:border-[#58a6ff]/50 hover:text-[#c9d1d9] transition-all cursor-pointer group">
+            <span className="flex h-2 w-2 rounded-full bg-[#3fb950] group-hover:shadow-[0_0_8px_#3fb950] transition-shadow"></span>
             RepoLens AI Engine v2.0 is now live
+            <ArrowRight className="w-3 h-3 ml-1 text-[#8b949e] group-hover:text-[#c9d1d9] transform group-hover:translate-x-0.5 transition-transform" />
           </div>
-          
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tighter mb-8 text-transparent bg-clip-text bg-gradient-to-br from-white via-gray-200 to-gray-500 leading-tight">
-            Understand your codebase. <br className="hidden md:block" />
-            <span className="text-[#58a6ff]">Faster than ever.</span>
+
+          <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-8 text-transparent bg-clip-text bg-gradient-to-b from-white via-[#c9d1d9] to-[#8b949e] leading-[1.1] pb-2 drop-shadow-sm">
+            Understand your code. <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#58a6ff] to-[#a371f7]">Faster than ever.</span>
           </h1>
-          
-          <p className="text-lg md:text-xl text-[#8b949e] mb-12 max-w-3xl mx-auto leading-relaxed font-light">
+
+          <p className="text-xl md:text-2xl text-[#8b949e] mb-12 max-w-3xl mx-auto leading-relaxed font-light">
             RepoLens utilizes advanced AI vector embeddings to map your entire repository. Stop reading thousands of lines of code—start asking questions and get exact, contextual explanations instantly.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link 
-              href="/dashboard" 
-              className="group flex items-center justify-center px-8 py-3.5 text-base font-semibold rounded-lg bg-[#238636] hover:bg-[#2ea043] text-white border border-[rgba(240,246,252,0.1)] transition-all duration-300 w-full sm:w-auto shadow-[0_0_15px_rgba(35,134,54,0.4)] hover:shadow-[0_0_25px_rgba(46,160,67,0.6)]"
+            <Link
+              href="/dashboard"
+              className="group relative flex items-center justify-center px-8 py-4 text-base font-semibold rounded-xl bg-[#238636] text-white overflow-hidden transition-all duration-300 w-full sm:w-auto shadow-[0_0_20px_rgba(35,134,54,0.3)] hover:shadow-[0_0_35px_rgba(46,160,67,0.5)] border border-[#2ea043]"
             >
-              Start Exploring
-              <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+              <span className="relative z-10 flex items-center gap-2">
+                Start Exploring
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </span>
             </Link>
-            <Link 
-              href="/about" 
-              className="flex items-center justify-center px-8 py-3.5 text-base font-semibold rounded-lg bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] border border-[#30363d] transition-all duration-300 w-full sm:w-auto shadow-sm"
+            <Link
+              href="/about"
+              className="group flex items-center justify-center px-8 py-4 text-base font-semibold rounded-xl bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] border border-[#30363d] hover:border-[#8b949e] transition-all duration-300 w-full sm:w-auto shadow-sm"
             >
               Read the Docs
             </Link>
           </div>
         </div>
+
+        {/* Floating Code UI Preview Decoration */}
+        <div className="mt-20 relative w-full max-w-5xl mx-auto hidden md:block perspective-[2000px]">
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0d1117] via-transparent to-transparent z-20 h-full w-full pointer-events-none"></div>
+          <div className="w-full aspect-video rounded-t-2xl border-t border-x border-[#30363d] bg-[#161b22] shadow-[0_-20px_50px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden rotate-x-[15deg] transform-origin-top hover:rotate-x-[5deg] transition-transform duration-700">
+            {/* Fake Mac Header */}
+            <div className="h-10 bg-[#0d1117] border-b border-[#30363d] flex items-center px-4 gap-2">
+              <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+              <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+              <div className="w-3 h-3 rounded-full bg-[#27c93f]"></div>
+            </div>
+            {/* Fake Content area */}
+            <div className="flex-1 opacity-20" style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/cubes.png')" }}></div>
+          </div>
+        </div>
       </section>
 
-      {/* Stats Section / Social Proof (Placeholder) */}
-      <section className="w-full border-y border-[#30363d] bg-[#0d1117]/80 backdrop-blur-md py-10 z-10 relative">
+      {/* Stats Section / Social Proof */}
+      <section className="w-full border-y border-[#30363d] bg-[#161b22]/50 backdrop-blur-md py-12 z-10 relative">
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center text-[#8b949e]">
-          <div className="flex flex-col gap-1">
-            <span className="text-3xl font-bold text-white">10M+</span>
-            <span className="text-sm font-medium">Lines Indexed</span>
+          <div className="flex flex-col gap-1 transition-transform hover:-translate-y-1 duration-300">
+            <span className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-[#c9d1d9]">10M+</span>
+            <span className="text-sm font-semibold tracking-wide uppercase text-[#8b949e]">Lines Indexed</span>
           </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-3xl font-bold text-white">50k+</span>
-            <span className="text-sm font-medium">Queries Answered</span>
+          <div className="flex flex-col gap-1 transition-transform hover:-translate-y-1 duration-300">
+            <span className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-[#c9d1d9]">50k+</span>
+            <span className="text-sm font-semibold tracking-wide uppercase text-[#8b949e]">Queries Answered</span>
           </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-3xl font-bold text-white">99.9%</span>
-            <span className="text-sm font-medium">Uptime SLA</span>
+          <div className="flex flex-col gap-1 transition-transform hover:-translate-y-1 duration-300">
+            <span className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-[#c9d1d9]">99.9%</span>
+            <span className="text-sm font-semibold tracking-wide uppercase text-[#8b949e]">Uptime SLA</span>
           </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-3xl font-bold text-white">&lt;200ms</span>
-            <span className="text-sm font-medium">Avg Response</span>
+          <div className="flex flex-col gap-1 transition-transform hover:-translate-y-1 duration-300">
+            <span className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-[#c9d1d9]">&lt;200ms</span>
+            <span className="text-sm font-semibold tracking-wide uppercase text-[#8b949e]">Avg Response</span>
           </div>
         </div>
       </section>
 
       {/* Feature Grid */}
-      <section className="w-full max-w-6xl mx-auto py-24 px-6 relative z-10">
-        <div className="text-center mb-16">
-           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight">Powerful capabilities out of the box</h2>
-           <p className="text-[#8b949e] max-w-2xl mx-auto text-lg">Everything you need to navigate, analyze, and comprehend massive codebases without opening a single IDE window.</p>
+      <section className="w-full max-w-6xl mx-auto py-32 px-6 relative z-10">
+        <div className="text-center mb-20">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1f6feb]/10 border border-[#1f6feb]/30 text-[#58a6ff] text-xs font-semibold uppercase tracking-wider mb-6">Features</div>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-[#c9d1d9]">Powerful capabilities out of the box</h2>
+          <p className="text-[#8b949e] max-w-2xl mx-auto text-xl font-light">Everything you need to navigate, analyze, and comprehend massive codebases without opening a single IDE window.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
           {/* Feature 1 */}
-          <div className="group p-8 rounded-2xl bg-[#161b22] border border-[#30363d] shadow-lg hover:border-[#58a6ff] hover:shadow-[0_0_30px_rgba(88,166,255,0.15)] transition-all duration-500 overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Database size={100} />
+          <div className="group p-8 rounded-2xl bg-[#161b22]/80 backdrop-blur-sm border border-[#30363d] shadow-lg hover:border-[#58a6ff] hover:shadow-[0_0_40px_rgba(88,166,255,0.15)] transition-all duration-500 overflow-hidden relative cursor-crosshair">
+            <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-10 transition-opacity duration-500 transform group-hover:scale-110">
+              <Database size={150} />
             </div>
-            <div className="w-12 h-12 rounded-xl bg-[#21262d] flex items-center justify-center mb-6 border border-[#30363d] group-hover:bg-[#58a6ff]/10 group-hover:border-[#58a6ff]/50 transition-colors">
-              <Database className="w-6 h-6 text-[#58a6ff]" />
+            <div className="w-14 h-14 rounded-xl bg-[#21262d] flex items-center justify-center mb-8 border border-[#30363d] group-hover:bg-[#58a6ff]/10 group-hover:border-[#58a6ff]/50 transition-colors shadow-inner">
+              <Database className="w-7 h-7 text-[#58a6ff]" />
             </div>
-            <h3 className="text-xl font-semibold text-white mb-3">Intelligent Indexing</h3>
-            <p className="text-sm text-[#8b949e] leading-relaxed relative z-10">
+            <h3 className="text-2xl font-bold text-white mb-4 tracking-tight">Intelligent Indexing</h3>
+            <p className="text-base text-[#8b949e] leading-relaxed relative z-10">
               Paste your repository URL and let our cluster extract, parse, and embed every function and structure using state-of-the-art vector stores.
             </p>
           </div>
 
           {/* Feature 2 */}
-          <div className="group p-8 rounded-2xl bg-[#161b22] border border-[#30363d] shadow-lg hover:border-[#2ea043] hover:shadow-[0_0_30px_rgba(46,160,67,0.15)] transition-all duration-500 overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-              <MessageSquare size={100} />
+          <div className="group p-8 rounded-2xl bg-[#161b22]/80 backdrop-blur-sm border border-[#30363d] shadow-lg hover:border-[#2ea043] hover:shadow-[0_0_40px_rgba(46,160,67,0.15)] transition-all duration-500 overflow-hidden relative cursor-crosshair md:translate-y-8">
+            <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-10 transition-opacity duration-500 transform group-hover:scale-110">
+              <MessageSquare size={150} />
             </div>
-            <div className="w-12 h-12 rounded-xl bg-[#21262d] flex items-center justify-center mb-6 border border-[#30363d] group-hover:bg-[#2ea043]/10 group-hover:border-[#2ea043]/50 transition-colors">
-              <MessageSquare className="w-6 h-6 text-[#2ea043]" />
+            <div className="w-14 h-14 rounded-xl bg-[#21262d] flex items-center justify-center mb-8 border border-[#30363d] group-hover:bg-[#2ea043]/10 group-hover:border-[#2ea043]/50 transition-colors shadow-inner">
+              <MessageSquare className="w-7 h-7 text-[#2ea043]" />
             </div>
-            <h3 className="text-xl font-semibold text-white mb-3">Contextual Chat AI</h3>
-            <p className="text-sm text-[#8b949e] leading-relaxed relative z-10">
+            <h3 className="text-xl font-semibold text-white mb-4 tracking-tight">Contextual Chat AI</h3>
+            <p className="text-base text-[#8b949e] leading-relaxed relative z-10">
               Ask natural language questions like "Where is the authentication logic?" and get exact code snippets, file references, and architectural explanations.
             </p>
           </div>
 
           {/* Feature 3 */}
-          <div className="group p-8 rounded-2xl bg-[#161b22] border border-[#30363d] shadow-lg hover:border-[#a371f7] hover:shadow-[0_0_30px_rgba(163,113,247,0.15)] transition-all duration-500 overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Code2 size={100} />
+          <div className="group p-8 rounded-2xl bg-[#161b22]/80 backdrop-blur-sm border border-[#30363d] shadow-lg hover:border-[#a371f7] hover:shadow-[0_0_40px_rgba(163,113,247,0.15)] transition-all duration-500 overflow-hidden relative cursor-crosshair">
+            <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-10 transition-opacity duration-500 transform group-hover:scale-110">
+              <Layers size={150} />
             </div>
-            <div className="w-12 h-12 rounded-xl bg-[#21262d] flex items-center justify-center mb-6 border border-[#30363d] group-hover:bg-[#a371f7]/10 group-hover:border-[#a371f7]/50 transition-colors">
-              <Code2 className="w-6 h-6 text-[#a371f7]" />
+            <div className="w-14 h-14 rounded-xl bg-[#21262d] flex items-center justify-center mb-8 border border-[#30363d] group-hover:bg-[#a371f7]/10 group-hover:border-[#a371f7]/50 transition-colors shadow-inner">
+              <Layers className="w-7 h-7 text-[#a371f7]" />
             </div>
-            <h3 className="text-xl font-semibold text-white mb-3">Unified Workspace</h3>
-            <p className="text-sm text-[#8b949e] leading-relaxed relative z-10">
+            <h3 className="text-xl font-semibold text-white mb-4 tracking-tight">Unified Workspace</h3>
+            <p className="text-base text-[#8b949e] leading-relaxed relative z-10">
               Visualize your codebase as an interconnected force-graph. Slide open the integrated editor, file browser, and chat to navigate seamlessly.
             </p>
           </div>
         </div>
       </section>
 
+      {/* How it Works / Workflow Section */}
+      <section className="w-full bg-[#161b22] py-32 border-y border-[#30363d] relative">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#e3b341]/10 border border-[#e3b341]/30 text-[#e3b341] text-xs font-semibold uppercase tracking-wider mb-6">Workflow</div>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight text-white">How RepoLens Works</h2>
+            <p className="text-[#8b949e] max-w-2xl mx-auto text-xl font-light">A seamless pipeline from Git clone to intelligent contextual answers.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
+            {/* Connecting line for desktop */}
+            <div className="hidden md:block absolute top-[40px] left-[10%] right-[10%] h-[2px] bg-gradient-to-r from-transparent via-[#30363d] to-transparent -z-10"></div>
+
+            {/* Step 1 */}
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 rounded-full bg-[#0d1117] border-4 border-[#161b22] shadow-[0_0_0_2px_#30363d] flex items-center justify-center text-xl font-bold text-[#c9d1d9] mb-6 relative group hover:border-[#58a6ff] hover:shadow-[0_0_20px_#58a6ff] transition-all">
+                1
+              </div>
+              <h4 className="text-lg font-bold text-white mb-2">Clone</h4>
+              <p className="text-[#8b949e] text-sm">Input your GitHub URL. We securely clone it into our temporary isolated environment.</p>
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 rounded-full bg-[#0d1117] border-4 border-[#161b22] shadow-[0_0_0_2px_#30363d] flex items-center justify-center text-xl font-bold text-[#c9d1d9] mb-6 relative group hover:border-[#a371f7] hover:shadow-[0_0_20px_#a371f7] transition-all">
+                2
+              </div>
+              <h4 className="text-lg font-bold text-white mb-2">Parse</h4>
+              <p className="text-[#8b949e] text-sm">We generate Abstract Syntax Trees (ASTs) for every file to understand the architecture deeply.</p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 rounded-full bg-[#0d1117] border-4 border-[#161b22] shadow-[0_0_0_2px_#30363d] flex items-center justify-center text-xl font-bold text-[#c9d1d9] mb-6 relative group hover:border-[#e3b341] hover:shadow-[0_0_20px_#e3b341] transition-all">
+                3
+              </div>
+              <h4 className="text-lg font-bold text-white mb-2">Embed</h4>
+              <p className="text-[#8b949e] text-sm">Nodes and functions are embedded into high-dimensional vectors stored in Pinecone.</p>
+            </div>
+
+            {/* Step 4 */}
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 rounded-full bg-[#0d1117] border-4 border-[#161b22] shadow-[0_0_0_2px_#30363d] flex items-center justify-center text-xl font-bold text-[#c9d1d9] mb-6 relative group hover:border-[#2ea043] hover:shadow-[0_0_20px_#2ea043] transition-all">
+                4
+              </div>
+              <h4 className="text-lg font-bold text-white mb-2">Chat</h4>
+              <p className="text-[#8b949e] text-sm">Ask anything via the unified workspace and receive accurate, precise answers backed by code references.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Interactive Code / Arch Section */}
-      <section className="w-full bg-[#0d1117] py-24 px-6 border-y border-[#30363d] relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-r from-[#58a6ff]/5 to-[#a371f7]/10 blur-[120px] rounded-full pointer-events-none"></div>
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
-          
-          <div className="order-2 lg:order-1 bg-[#161b22] border border-[#30363d] rounded-2xl shadow-2xl overflow-hidden group">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-[#30363d] bg-[#0d1117]">
-               <div className="flex gap-1.5">
-                 <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
-                 <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
-                 <div className="w-3 h-3 rounded-full bg-[#27c93f]"></div>
-               </div>
-               <span className="ml-4 text-xs font-mono text-[#8b949e]">query_rag.py</span>
-            </div>
-            <div className="p-6 overflow-x-auto text-[13px] md:text-sm font-mono leading-relaxed text-[#c9d1d9] bg-[#0d1117] custom-scrollbar">
-              <span className="text-[#ff7b72]">import</span> <span className="text-[#c9d1d9]">pinecone</span><br/>
-              <span className="text-[#ff7b72]">from</span> <span className="text-[#c9d1d9]">openai</span> <span className="text-[#ff7b72]">import</span> <span className="text-[#c9d1d9]">OpenAI</span><br/>
-              <br/>
-              <span className="text-[#ff7b72]">def</span> <span className="text-[#d2a8ff]">analyze_architecture</span>(<span className="text-[#a5d6ff]">repo_id</span>: <span className="text-[#ff7b72]">str</span>, <span className="text-[#a5d6ff]">question</span>: <span className="text-[#ff7b72]">str</span>):<br/>
-              &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#8b949e]"># 1. Embed user query</span><br/>
-              &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#c9d1d9]">vector</span> = <span className="text-[#d2a8ff]">embed_text</span>(question)<br/>
-              <br/>
-              &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#8b949e]"># 2. Retrieve top-k semantic AST nodes</span><br/>
-              &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#c9d1d9]">context</span> = <span className="text-[#c9d1d9]">pinecone_index</span>.<span className="text-[#d2a8ff]">query</span>(<br/>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#a5d6ff]">vector</span>=vector,<br/>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#a5d6ff]">top_k</span>=<span className="text-[#79c0ff]">15</span>,<br/>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#a5d6ff]">filter</span>={"{"}<span className="text-[#a5d6ff]">"repo_id"</span>: repo_id{"}"}<br/>
-              &nbsp;&nbsp;&nbsp;&nbsp;)<br/>
-              <br/>
-              &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#8b949e]"># 3. Stream factual synthesis to client</span><br/>
-              &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#ff7b72]">return</span> <span className="text-[#c9d1d9]">llm</span>.<span className="text-[#d2a8ff]">generate_stream</span>(context, question)<br/>
-            </div>
-          </div>
+      <section className="w-full bg-[#0d1117] py-32 px-6 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-[#58a6ff]/10 to-[#a371f7]/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen"></div>
+        <div className="max-w-6xl mx-auto grid grid-cols-1 xl:grid-cols-2 gap-16 items-center relative z-10">
 
-          <div className="order-1 lg:order-2 space-y-6">
-            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Code Search, Evolved.</h2>
-            <p className="text-lg text-[#8b949e] leading-relaxed">
-              We replace legacy regex and raw text indexing with a high-dimensional vector space. RepoLens understands the <em className="text-white">intent</em> behind the code, instantly leaping across modules and microservices to give you architectural answers.
-            </p>
-            <ul className="space-y-4 pt-4">
-              <li className="flex items-center text-[#c9d1d9]">
-                <div className="w-8 h-8 rounded-full bg-[#1f6feb]/10 text-[#58a6ff] flex items-center justify-center mr-4 border border-[#1f6feb]/30 shrink-0">1</div>
-                Generates precise Abstract Syntax Trees.
-              </li>
-              <li className="flex items-center text-[#c9d1d9]">
-                <div className="w-8 h-8 rounded-full bg-[#2ea043]/10 text-[#2ea043] flex items-center justify-center mr-4 border border-[#2ea043]/30 shrink-0">2</div>
-                Embeds logic nodes into Pinecone.
-              </li>
-              <li className="flex items-center text-[#c9d1d9]">
-                <div className="w-8 h-8 rounded-full bg-[#a371f7]/10 text-[#a371f7] flex items-center justify-center mr-4 border border-[#a371f7]/30 shrink-0">3</div>
-                Synthesizes RAG context via unified Chat.
-              </li>
-            </ul>
-          </div>
-        </div>
-      </section>
+          <div className="order-2 xl:order-1 relative group">
+            {/* Background glowing border effect */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#58a6ff] to-[#a371f7] rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
 
-      {/* Extended Details Section */}
-      <section className="w-full max-w-6xl mx-auto py-16 px-6">
-        <div className="rounded-3xl bg-gradient-to-br from-[#161b22] to-[#0d1117] border border-[#30363d] p-10 md:p-16 flex flex-col md:flex-row items-center justify-between gap-12 shadow-2xl relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]"></div>
-          
-          <div className="max-w-lg relative z-10">
-            <h2 className="text-3xl font-bold text-white mb-6">Designed for Enterprise Security</h2>
-            <ul className="space-y-4">
-              <li className="flex items-start">
-                <Shield className="w-6 h-6 text-[#2ea043] mr-3 mt-0.5 flex-shrink-0" />
-                <p className="text-[#8b949e] text-base"><strong className="text-[#c9d1d9] font-medium">Zero Retention.</strong> Your codebase is parsed in-memory and embedded securely. Code is never utilized for LLM training.</p>
-              </li>
-              <li className="flex items-start">
-                <Globe className="w-6 h-6 text-[#58a6ff] mr-3 mt-0.5 flex-shrink-0" />
-                <p className="text-[#8b949e] text-base"><strong className="text-[#c9d1d9] font-medium">Isolated Execution.</strong> Each repository gets an isolated vector space, ensuring zero cross-contamination between projects.</p>
-              </li>
-              <li className="flex items-start">
-                <Zap className="w-6 h-6 text-[#e3b341] mr-3 mt-0.5 flex-shrink-0" />
-                <p className="text-[#8b949e] text-base"><strong className="text-[#c9d1d9] font-medium">Real-time Performance.</strong> Powered by optimized Graph structures, reducing UI latency by over 80% compared to typical dashboards.</p>
-              </li>
-            </ul>
-          </div>
-          
-          <div className="w-full md:w-1/2 flex justify-center relative z-10">
-             <div className="relative w-full max-w-sm aspect-square bg-[#010409] border border-[#30363d] rounded-2xl shadow-2xl overflow-hidden flex flex-col items-center justify-center p-6 group">
-                <div className="absolute inset-0 bg-gradient-to-t from-[#2ea043]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#2ea043] to-[#58a6ff] blur-2xl opacity-40 group-hover:opacity-60 transition-opacity duration-500 absolute mb-10"></div>
-                <Network size={80} className="text-white relative z-10 animate-[spin_20s_linear_infinite]" strokeWidth={1} />
-                <div className="mt-8 text-center relative z-10">
-                  <p className="font-mono text-xs text-[#58a6ff] mb-1">SYSTEM_STATUS: ONLINE</p>
-                  <p className="text-sm text-[#8b949e]">Graph Indexing Operational</p>
+            <div className="relative bg-[#0d1117] border border-[#30363d] rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[#30363d] bg-[#161b22]">
+                <div className="flex items-center gap-4">
+                  <div className="flex gap-2">
+                    <div className="w-3.5 h-3.5 rounded-full bg-[#ff5f56]"></div>
+                    <div className="w-3.5 h-3.5 rounded-full bg-[#ffbd2e]"></div>
+                    <div className="w-3.5 h-3.5 rounded-full bg-[#27c93f]"></div>
+                  </div>
+                  <div className="h-4 w-[1px] bg-[#30363d]"></div>
+                  <span className="text-xs font-medium text-[#8b949e]">query_rag.py</span>
                 </div>
-             </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-[#8b949e] bg-[#21262d] py-1 px-2 rounded font-mono">Python 3.12</span>
+                </div>
+              </div>
+              <div className="p-8 overflow-x-auto text-[14px] font-mono leading-loose text-[#c9d1d9] bg-[#0d1117] custom-scrollbar">
+                <span className="text-[#ff7b72]">import</span> <span className="text-[#c9d1d9]">pinecone</span><br />
+                <span className="text-[#ff7b72]">from</span> <span className="text-[#c9d1d9]">openai</span> <span className="text-[#ff7b72]">import</span> <span className="text-[#c9d1d9]">OpenAI</span><br />
+                <br />
+                <span className="text-[#ff7b72]">def</span> <span className="text-[#d2a8ff]">analyze_architecture</span>(<span className="text-[#a5d6ff]">repo_id</span>: <span className="text-[#ff7b72]">str</span>, <span className="text-[#a5d6ff]">question</span>: <span className="text-[#ff7b72]">str</span>):<br />
+                <span className="text-[#8b949e] italic block border-l-2 border-[#8b949e]/30 pl-4 my-2">"""Embeds query and retrieves exact architectural context."""</span>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#8b949e]"># 1. Embed user query</span><br />
+                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#c9d1d9]">vector</span> = <span className="text-[#d2a8ff]">embed_text</span>(question)<br />
+                <br />
+                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#8b949e]"># 2. Retrieve top-k semantic AST nodes from fast vector store</span><br />
+                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#c9d1d9]">context</span> = <span className="text-[#c9d1d9]">pinecone_index</span>.<span className="text-[#d2a8ff]">query</span>(<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#a5d6ff]">vector</span>=vector,<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#a5d6ff]">top_k</span>=<span className="text-[#79c0ff]">15</span>,<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#a5d6ff]">filter</span>={"{"}<span className="text-[#a5d6ff]">"repo_id"</span>: repo_id{"}"}<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;)<br />
+                <br />
+                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#8b949e]"># 3. Stream factual synthesis to the UI</span><br />
+                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#ff7b72]">return</span> <span className="text-[#c9d1d9]">llm</span>.<span className="text-[#d2a8ff]">generate_stream</span>(context, question)<br />
+              </div>
+            </div>
+          </div>
+
+          <div className="order-1 xl:order-2 space-y-8">
+            <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">Code Search, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#58a6ff] to-[#a371f7]">Evolved.</span></h2>
+            <p className="text-xl text-[#8b949e] leading-relaxed font-light">
+              We replace legacy regex and raw text indexing with a high-dimensional vector space. RepoLens understands the <em className="text-white font-medium not-italic drop-shadow-md">intent</em> behind the code, instantly leaping across modules and microservices to give you architectural answers.
+            </p>
+            <ul className="space-y-6 pt-4">
+              <li className="flex items-start text-[#c9d1d9]">
+                <div className="w-10 h-10 rounded-full bg-[#1f6feb]/10 text-[#58a6ff] flex items-center justify-center mr-5 border border-[#1f6feb]/30 shrink-0 font-bold shadow-sm">1</div>
+                <div>
+                  <strong className="block text-white mb-1">Syntax Trees</strong>
+                  <span className="text-[#8b949e]">Generates precise ASTs separating components, functions, and classes.</span>
+                </div>
+              </li>
+              <li className="flex items-start text-[#c9d1d9]">
+                <div className="w-10 h-10 rounded-full bg-[#2ea043]/10 text-[#2ea043] flex items-center justify-center mr-5 border border-[#2ea043]/30 shrink-0 font-bold shadow-sm">2</div>
+                <div>
+                  <strong className="block text-white mb-1">Vector Storage</strong>
+                  <span className="text-[#8b949e]">Embeds vast amounts of logic into millisecond-accessible clusters.</span>
+                </div>
+              </li>
+              <li className="flex items-start text-[#c9d1d9]">
+                <div className="w-10 h-10 rounded-full bg-[#a371f7]/10 text-[#a371f7] flex items-center justify-center mr-5 border border-[#a371f7]/30 shrink-0 font-bold shadow-sm">3</div>
+                <div>
+                  <strong className="block text-white mb-1">RAG Synthesis</strong>
+                  <span className="text-[#8b949e]">Synthesizes RAG context on the fly to directly answer prompt intentions.</span>
+                </div>
+              </li>
+            </ul>
           </div>
         </div>
       </section>
 
+      {/* Target Audience / Use Cases */}
+      <section className="w-full bg-[#161b22] py-32 px-6 border-y border-[#30363d] relative">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight text-white">Built for High-Velocity Teams</h2>
+            <p className="text-[#8b949e] max-w-2xl mx-auto text-xl font-light">Whether you're exploring a legacy monolith or onboarding to a new microservice.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-[#0d1117] border border-[#30363d] p-8 rounded-2xl hover:border-[#8b949e] transition-colors">
+              <div className="mb-6 bg-[#21262d] w-14 h-14 rounded-lg flex items-center justify-center border border-[#30363d]">
+                <Code2 className="text-[#58a6ff]" size={28} />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3">Engineers</h3>
+              <p className="text-[#8b949e] leading-relaxed">Stop grepping. Ask "where do we parse JWTs?" and immediately get the exact file and function highlighted in the integrated editor.</p>
+            </div>
+            <div className="bg-[#0d1117] border border-[#30363d] p-8 rounded-2xl hover:border-[#8b949e] transition-colors">
+              <div className="mb-6 bg-[#21262d] w-14 h-14 rounded-lg flex items-center justify-center border border-[#30363d]">
+                <Workflow className="text-[#a371f7]" size={28} />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3">Architects</h3>
+              <p className="text-[#8b949e] leading-relaxed">Visualize deeply nested architectures via the 2D network graph. Understand dependencies and tech debt from a birds-eye view.</p>
+            </div>
+            <div className="bg-[#0d1117] border border-[#30363d] p-8 rounded-2xl hover:border-[#8b949e] transition-colors">
+              <div className="mb-6 bg-[#21262d] w-14 h-14 rounded-lg flex items-center justify-center border border-[#30363d]">
+                <Bot className="text-[#2ea043]" size={28} />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3">New Hires</h3>
+              <p className="text-[#8b949e] leading-relaxed">Slash onboarding time by 80%. Let the AI explainer walk you through business logic rules and API structure step-by-step.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Extended Details / Security Section */}
+      <section className="w-full bg-[#0d1117] py-24 px-6 border-b border-[#30363d]">
+        <div className="max-w-6xl mx-auto">
+          <div className="rounded-3xl bg-gradient-to-br from-[#161b22] to-[#0d1117] border border-[#30363d] p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-12 shadow-2xl relative overflow-hidden group">
+            <div className="absolute inset-0 opacity-10 mix-blend-screen" style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/stardust.png')" }}></div>
+
+            <div className="max-w-lg relative z-10">
+              <h2 className="text-4xl font-bold text-white mb-8 tracking-tight">Designed for Enterprise Security</h2>
+              <ul className="space-y-6">
+                <li className="flex items-start">
+                  <Shield className="w-8 h-8 text-[#2ea043] mr-4 flex-shrink-0 drop-shadow-[0_0_10px_rgba(46,160,67,0.5)] mt-1" />
+                  <div>
+                    <strong className="text-white text-lg block mb-1">Zero Retention.</strong>
+                    <p className="text-[#8b949e] text-base leading-relaxed">Your codebase is parsed in-memory and embedded securely. Code is never utilized for LLM training or retained beyond your session.</p>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <Globe className="w-8 h-8 text-[#58a6ff] mr-4 flex-shrink-0 drop-shadow-[0_0_10px_rgba(88,166,255,0.5)] mt-1" />
+                  <div>
+                    <strong className="text-white text-lg block mb-1">Isolated Execution.</strong>
+                    <p className="text-[#8b949e] text-base leading-relaxed">Each repository is sandboxed. You operate in an isolated vector space, ensuring zero cross-contamination between organizational projects.</p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div className="w-full md:w-1/2 flex justify-center relative z-10">
+              <div className="relative w-full max-w-md aspect-square bg-[#010409] border border-[#30363d] rounded-2xl shadow-2xl overflow-hidden flex flex-col items-center justify-center p-8 group-hover:border-[#30363d]/80 transition">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#2ea043]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+                <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-[#2ea043] to-[#58a6ff] blur-3xl opacity-30 group-hover:opacity-60 transition-opacity duration-700 absolute"></div>
+                <Network size={100} className="text-[#c9d1d9] relative z-10 animate-[spin_30s_linear_infinite]" strokeWidth={1} />
+                <div className="mt-8 text-center relative z-10 bg-[#161b22]/50 backdrop-blur-md px-6 py-3 rounded-xl border border-[#30363d]/50">
+                  <p className="font-mono text-sm text-[#58a6ff] mb-1 font-bold tracking-widest flex items-center justify-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#3fb950] animate-pulse"></span>
+                    SYSTEM_STATUS
+                  </p>
+                  <p className="text-sm text-[#8b949e] font-medium">Core Graph Engine Online</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="w-full bg-[#161b22] py-32 px-6 text-center relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-4xl bg-gradient-to-b from-[#58a6ff]/5 to-transparent blur-[100px] pointer-events-none"></div>
+        <div className="relative z-10 max-w-3xl mx-auto">
+          <h2 className="text-5xl md:text-6xl font-black text-white mb-8 tracking-tighter drop-shadow-sm">Ready to dive in?</h2>
+          <p className="text-xl text-[#8b949e] mb-12 font-light">Join the next generation of developers understanding massive architectures at light speed.</p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link
+              href="/dashboard"
+              className="flex justify-center items-center gap-2 px-10 py-5 bg-white text-black font-bold text-lg rounded-xl hover:bg-gray-200 transition-colors shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:shadow-[0_0_40px_rgba(255,255,255,0.4)]"
+            >
+              Start Building Free
+              <ChevronRight className="w-5 h-5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+
+      <Footer />
     </div>
   );
 }

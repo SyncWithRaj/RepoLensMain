@@ -3,13 +3,22 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Terminal } from "lucide-react";
 import api from "@/lib/axios";
 
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -36,35 +45,47 @@ export default function Navbar() {
   const inWorkspace = pathname.startsWith("/graph") || pathname.startsWith("/chat");
 
   return (
-    <nav className="bg-[#161b22]/80 backdrop-blur-md border-b border-[#30363d] text-[#c9d1d9] px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+    <nav 
+      className={`sticky top-[15px] mx-[15px] z-50 transition-all duration-300 rounded-2xl ${
+        scrolled 
+          ? "bg-[#0d1117]/60 backdrop-blur-md border border-[#30363d]/80 shadow-[0_8px_30px_rgba(0,0,0,0.4)]" 
+          : "bg-[#0d1117]/40 backdrop-blur-sm border border-[#30363d]/40"
+      } text-[#c9d1d9] px-6 py-3.5 flex items-center justify-between`}
+    >
       <div className="flex items-center space-x-6">
         
         {inWorkspace ? (
           <div className="flex items-center gap-4">
             <Link 
               href="/dashboard"
-              className="flex items-center justify-center p-2 rounded-lg bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] transition border border-[#30363d]"
+              className="flex items-center justify-center p-2 rounded-lg bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] hover:text-white transition-all duration-300 border border-[#30363d] hover:border-[#8b949e]/50 shadow-sm"
               title="Back to Dashboard"
             >
               <ArrowLeft size={18} />
             </Link>
-            <div className="w-[1px] h-6 bg-[#30363d]"></div>
+            <div className="w-[1px] h-6 bg-[#30363d]/50"></div>
             <span className="flex items-center space-x-2 text-white">
-              <span className="font-semibold text-xl tracking-tight">RepoLens</span>
+              <span className="font-bold text-xl tracking-tight">RepoLens</span>
             </span>
           </div>
         ) : (
-          <Link href="/" className="flex items-center space-x-2 text-white hover:text-gray-300 transition">
-            <svg height="32" viewBox="0 0 16 16" version="1.1" width="32" fill="currentColor">
-              <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
-            </svg>
-            <span className="font-semibold text-xl tracking-tight">RepoLens</span>
+          <Link href="/" className="flex items-center space-x-2 text-white group">
+            <div className="p-1.5 rounded-lg bg-[#21262d] border border-[#30363d] group-hover:border-[#58a6ff]/50 transition-colors shadow-inner">
+               <Terminal size={22} className="text-[#c9d1d9] group-hover:text-[#58a6ff] transition-colors" />
+            </div>
+            <span className="font-bold text-xl tracking-tight">RepoLens</span>
           </Link>
         )}
 
-        <div className="hidden md:flex space-x-4">
-          <Link href="/about" className="text-sm font-medium hover:text-white transition">About</Link>
-          <Link href="/contact" className="text-sm font-medium hover:text-white transition">Contact Us</Link>
+        <div className="hidden md:flex space-x-2">
+          <Link href="/about" className="text-sm font-medium text-[#c9d1d9] hover:text-white hover:bg-[#21262d] px-3 py-1.5 rounded-md transition-all duration-300 relative group overflow-hidden">
+            <span className="relative z-10">About</span>
+            <div className="absolute bottom-0 left-0 h-[1px] w-0 bg-[#c9d1d9] transition-all duration-300 group-hover:w-full"></div>
+          </Link>
+          <Link href="/contact" className="text-sm font-medium text-[#c9d1d9] hover:text-white hover:bg-[#21262d] px-3 py-1.5 rounded-md transition-all duration-300 relative group overflow-hidden">
+            <span className="relative z-10">Contact Us</span>
+            <div className="absolute bottom-0 left-0 h-[1px] w-0 bg-[#c9d1d9] transition-all duration-300 group-hover:w-full"></div>
+          </Link>
         </div>
       </div>
 
@@ -73,13 +94,13 @@ export default function Navbar() {
           <>
             <Link 
               href="/dashboard" 
-              className="text-sm font-medium hover:text-white transition"
+              className="text-sm font-medium hover:text-white text-[#c9d1d9] hover:bg-[#21262d] px-3 py-1.5 rounded-md transition-all duration-300"
             >
               Dashboard
             </Link>
             <button 
               onClick={handleLogout}
-              className="text-sm text-[#da3633] hover:text-[#b62324] transition font-medium bg-[#21262d] border border-[var(--color-gh-border)] px-3 py-1.5 rounded-lg shadow-sm"
+              className="text-sm text-[#f85149] hover:text-white hover:bg-[#da3633] hover:border-[#da3633] transition-all duration-300 font-medium bg-[#21262d] border border-[#30363d] px-4 py-1.5 rounded-lg shadow-sm"
             >
               Logout
             </button>
@@ -87,7 +108,7 @@ export default function Navbar() {
         ) : (
           <Link 
             href="/login" 
-            className="text-sm font-medium bg-[#238636] hover:bg-[#2ea043] text-white px-3 py-1.5 rounded-lg border border-[rgba(240,246,252,0.1)] transition shadow-sm"
+            className="text-sm font-semibold bg-[#238636] hover:bg-[#2ea043] text-white px-5 py-2 rounded-lg border border-[rgba(240,246,252,0.1)] transition-all duration-300 shadow-[0_0_15px_rgba(35,134,54,0.2)] hover:shadow-[0_0_20px_rgba(46,160,67,0.4)] block"
           >
             Sign in
           </Link>

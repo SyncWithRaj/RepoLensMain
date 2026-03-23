@@ -4,6 +4,7 @@ import { useEditor } from "@/context/EditorContext";
 import api from "@/lib/axios";
 import { getLanguage } from "@/utils/getLanguage";
 import { useRef, useEffect } from "react";
+import { Send, Bot, User, Code2 } from "lucide-react";
 
 export default function ChatPanel({
   repoId,
@@ -50,61 +51,65 @@ export default function ChatPanel({
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#18181b]">
-      <div className="p-3 border-b border-[var(--color-gh-border)] bg-[#18181b] sticky top-0 z-10 flex flex-row items-center justify-between">
-        <h3 className="text-[11px] font-bold tracking-wider uppercase text-[#8b949e] flex items-center gap-2">
-          Chat
+    <div className="flex flex-col h-full bg-[#0d1117] relative">
+      <div className="p-4 border-b border-[#30363d] bg-[#161b22]/90 backdrop-blur-md sticky top-0 z-10 flex flex-row items-center justify-between shadow-sm">
+        <h3 className="text-xs font-bold tracking-widest uppercase text-[#c9d1d9] flex items-center gap-2">
+          <Bot size={16} className="text-[#58a6ff]" />
+          RepoLens AI
         </h3>
+        <div className="w-2 h-2 rounded-full bg-[#2ea043] shadow-[0_0_8px_#2ea043] animate-pulse"></div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-4 bg-[#18181b] custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-[#0d1117] custom-scrollbar relative z-0">
+        <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-gradient-to-l from-[#58a6ff]/5 to-transparent blur-3xl pointer-events-none -z-10"></div>
+        
         {messages.length === 0 ? (
-          <div className="text-center py-12 flex flex-col items-center justify-center h-full">
-            <svg className="h-10 w-10 text-[#30363d] mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-            <p className="text-sm text-[#8b949e]">Ask a question about the codebase</p>
+          <div className="text-center py-16 flex flex-col items-center justify-center h-full">
+            <div className="w-16 h-16 rounded-full bg-[#161b22] border border-[#30363d] flex items-center justify-center mb-6 shadow-inner">
+               <Bot className="h-8 w-8 text-[#58a6ff]" />
+            </div>
+            <p className="text-base font-medium text-[#c9d1d9] mb-2">How can I help with this codebase?</p>
+            <p className="text-sm text-[#8b949e]">Ask for architecture details, exact files, or component logic.</p>
           </div>
         ) : (
           messages.map((msg: any, i: number) => (
             <div key={i} className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}>
               <div
-                className={`max-w-[90%] border rounded-lg overflow-hidden ${
+                className={`max-w-[90%] md:max-w-[85%] rounded-2xl overflow-hidden shadow-sm ${
                   msg.role === "user"
-                    ? "bg-[#2b2d31] border-transparent"
-                    : "bg-[#1e1e1e] border-[var(--color-gh-border)]"
+                    ? "bg-[#21262d] border border-[#30363d]/50 rounded-tr-sm"
+                    : "bg-[#161b22] border border-[#30363d] rounded-tl-sm shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
                 }`}
               >
-                <div className={`px-2.5 py-1 text-[10px] font-semibold flex items-center gap-1.5 ${
-                  msg.role === "user" ? "bg-[#2b2d31] text-[#c9d1d9]" : "bg-[#1e1e1e] text-[#58a6ff] border-b border-[var(--color-gh-border)]"
+                <div className={`px-4 py-2 text-[11px] font-bold tracking-wide uppercase flex items-center gap-2 ${
+                  msg.role === "user" ? "text-[#c9d1d9] justify-end" : "text-[#58a6ff] border-b border-[#30363d]/50 bg-[#0d1117]/50"
                 }`}>
-                  {msg.role === "assistant" && (
-                     <svg className="w-3 h-3 text-[#58a6ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                     </svg>
-                  )}
+                  {msg.role === "assistant" && <Bot size={14} className="text-[#58a6ff]" />}
                   {msg.role === "user" ? "You" : "RepoLens"}
+                  {msg.role === "user" && <User size={14} className="text-[#8b949e]" />}
                 </div>
-                <div className="p-2.5 text-xs text-[#cccccc] whitespace-pre-wrap leading-relaxed">
+                <div className="p-4 text-[13px] sm:text-sm text-[#c9d1d9] whitespace-pre-wrap leading-relaxed font-sans">
                   {msg.content}
                 </div>
               </div>
 
               {msg.references && msg.references.length > 0 && (
-                <div className="mt-1.5 space-y-1 w-full max-w-[90%] self-start ml-1">
-                  {msg.references.map((ref: any, idx: number) => (
-                    <div
-                      key={idx}
-                      onClick={() => openReference(ref)}
-                      className="inline-flex items-center gap-1.5 text-[10px] bg-[#2d2d2d] border border-transparent hover:border-[#58a6ff] rounded-[4px] px-1.5 py-0.5 text-[#cccccc] cursor-pointer transition mr-1 mb-1"
-                      title="Click to view in editor"
-                    >
-                      <svg className="w-3 h-3 text-[#519aba]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                      </svg>
-                      {ref.file.split('/').pop()} <span className="text-[#8b949e]">:{ref.startLine}</span>
-                    </div>
-                  ))}
+                <div className="mt-2 space-y-1.5 w-full max-w-[85%] self-start ml-2">
+                  <span className="text-[10px] font-bold text-[#8b949e] uppercase tracking-wider block mb-1">References</span>
+                  <div className="flex flex-wrap gap-2">
+                     {msg.references.map((ref: any, idx: number) => (
+                       <div
+                         key={idx}
+                         onClick={() => openReference(ref)}
+                         className="inline-flex items-center gap-1.5 text-[11px] bg-[#161b22] border border-[#30363d] hover:border-[#58a6ff] hover:bg-[#58a6ff]/10 rounded-lg px-2.5 py-1.5 text-[#c9d1d9] cursor-pointer transition-all shadow-sm group"
+                         title="Click to view in editor"
+                       >
+                         <Code2 className="w-3.5 h-3.5 text-[#58a6ff] group-hover:scale-110 transition-transform" />
+                         <span className="font-mono">{ref.file.split('/').pop()}</span> 
+                         <span className="text-[#8b949e] font-mono">L{ref.startLine}</span>
+                       </div>
+                     ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -113,18 +118,17 @@ export default function ChatPanel({
 
         {loading && (
           <div className="flex items-start">
-            <div className="max-w-[90%] border border-[var(--color-gh-border)] rounded-lg overflow-hidden bg-[#1e1e1e]">
-              <div className="px-2.5 py-1 text-[10px] font-semibold border-b border-[var(--color-gh-border)] bg-[#1e1e1e] text-[#58a6ff] flex items-center gap-1.5">
-                <svg className="w-3 h-3 text-[#58a6ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+            <div className="max-w-[85%] border border-[#30363d] rounded-2xl rounded-tl-sm overflow-hidden bg-[#161b22] shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
+              <div className="px-4 py-2 text-[11px] font-bold tracking-wide uppercase border-b border-[#30363d]/50 bg-[#0d1117]/50 text-[#58a6ff] flex items-center gap-2">
+                <Bot size={14} className="text-[#58a6ff]" />
                 RepoLens
               </div>
-              <div className="p-2.5 text-xs text-[#8b949e] flex items-center gap-2">
-                <svg className="animate-spin h-3.5 w-3.5 text-[#8b949e]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+              <div className="p-5 text-[13px] text-[#8b949e] flex items-center gap-3">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-[#58a6ff] rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                  <div className="w-2 h-2 bg-[#58a6ff] rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                  <div className="w-2 h-2 bg-[#58a6ff] rounded-full animate-bounce"></div>
+                </div>
                 Thinking...
               </div>
             </div>
@@ -133,26 +137,26 @@ export default function ChatPanel({
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-3 bg-[#18181b] border-t border-[var(--color-gh-border)]">
-        <div className="bg-[#1e1e1e] border border-[var(--color-gh-border)] rounded-[4px] focus-within:border-[#007acc] transition overflow-hidden flex flex-col">
+      <div className="px-4 py-4 bg-[#0d1117] border-t border-[#30363d] relative z-10">
+        <div className="bg-[#161b22] border border-[#30363d] rounded-xl focus-within:border-[#58a6ff] focus-within:shadow-[0_0_15px_rgba(88,166,255,0.15)] transition-all overflow-hidden flex flex-col shadow-inner">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask anything..."
-            className="w-full bg-transparent p-2 text-xs text-[#cccccc] focus:outline-none resize-none min-h-[60px]"
+            placeholder="Ask anything about this repository..."
+            className="w-full bg-transparent p-4 text-[13px] text-[#c9d1d9] focus:outline-none resize-none min-h-[70px] placeholder:text-[#484f58]"
             disabled={loading}
           />
-          <div className="flex justify-between items-center px-2 py-1.5 bg-[#1e1e1e]">
-            <span className="text-[9px] text-[#8b949e]">
-              <kbd className="px-1 border border-[var(--color-gh-border)] rounded-[2px] bg-[#2d2d2d]">Enter</kbd> to send
+          <div className="flex justify-between items-center px-3 py-2 bg-[#161b22] border-t border-[#30363d]/50">
+            <span className="text-[10px] text-[#8b949e] flex items-center gap-1 font-medium">
+              <kbd className="px-1.5 py-0.5 border border-[#30363d] rounded bg-[#0d1117] font-mono shadow-sm">Enter</kbd> to send
             </span>
             <button
               onClick={sendMessage}
               disabled={loading || !input.trim()}
-              className="bg-[#007acc] hover:bg-[#005a9e] disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-[10px] px-3 py-1 rounded-[2px] transition"
+              className="bg-[#238636] hover:bg-[#2ea043] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-[11px] px-4 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-sm"
             >
-              Send
+              Send <Send size={12} />
             </button>
           </div>
         </div>

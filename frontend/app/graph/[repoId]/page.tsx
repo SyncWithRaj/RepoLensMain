@@ -48,7 +48,7 @@ export default function GraphPage() {
   };
 
   return (
-    <div className="flex flex-grow overflow-hidden bg-[#010409] text-[#c9d1d9] font-sans h-[calc(100vh-64px)] p-2 gap-2">
+    <div className="flex flex-grow overflow-hidden bg-[#010409] text-[#c9d1d9] font-sans h-[calc(100vh-700px)] p-2 gap-2 mt-22">
       {/* Activity Bar */}
       <div className="w-[50px] min-w-[50px] flex flex-col items-center py-4 bg-[#0d1117] rounded-xl border border-[#30363d] shadow-sm z-10 space-y-4">
         <button 

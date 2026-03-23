@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useRef, useEffect } from "react";
 import { useEditor } from "@/context/EditorContext";
+import { FileCode2, X } from "lucide-react";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
@@ -55,40 +56,48 @@ export default function CodeEditor() {
   }, [editorState]);
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#1e1e1e]">
+    <div className="flex flex-col h-full w-full bg-[#0d1117] rounded-xl overflow-hidden relative border-none">
+      
+      {/* Absolute Glow Background just for aesthetic padding */}
+      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-l from-[#a371f7]/5 to-transparent blur-3xl pointer-events-none -z-10"></div>
+
       {/* VSCode-style Tab Bar */}
-      <div className="flex bg-[#18181b] border-b border-[var(--color-gh-border)] overflow-x-auto min-h-[36px] items-end custom-scrollbar">
+      <div className="flex bg-[#010409] border-b border-[#30363d] overflow-x-auto min-h-[46px] items-end custom-scrollbar px-1 pt-1.5 relative z-10 w-full">
         {tabs && tabs.length > 0 ? (
           tabs.map((tab: any) => (
             <div 
               key={tab.filePath}
               onClick={() => setActiveTabId(tab.filePath)}
-              className={`flex items-center gap-2 px-3 py-1.5 text-xs min-w-max cursor-pointer border-r border-[var(--color-gh-border)] group
+              className={`flex items-center gap-2 px-4 py-2 text-[13px] min-w-max cursor-pointer border-t-2 border-x border-[#30363d] rounded-t-lg transition-all group select-none ml-1
                 ${activeTabId === tab.filePath 
-                  ? "bg-[#1e1e1e] border-t-2 border-[#007acc] text-[#cccccc]" 
-                  : "bg-[#21262d] border-t-2 border-transparent text-[#8b949e] hover:bg-[#1e1e1e]"
+                  ? "bg-[#0d1117] border-t-[#58a6ff] border-x-[#30363d] text-[#c9d1d9] border-b-transparent shadow-[0_-2px_10px_rgba(88,166,255,0.05)] z-20 scale-y-105 origin-bottom translate-y-[1px]" 
+                  : "bg-[#161b22] border-t-transparent border-x-transparent text-[#8b949e] hover:bg-[#21262d] hover:text-[#c9d1d9]"
                 }`}
             >
-              <svg className="w-3.5 h-3.5 text-[#519aba]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className="truncate max-w-[200px]">{tab.filePath.split('/').pop()}</span>
+              <FileCode2 size={16} className={activeTabId === tab.filePath ? "text-[#58a6ff]" : "text-[#8b949e] group-hover:text-[#c9d1d9]"} />
+              <span className="truncate max-w-[200px] font-mono">{tab.filePath.split('/').pop()}</span>
               <button 
-                onClick={(e) => closeTab(e, tab.filePath)}
-                className={`ml-1 flex items-center justify-center w-4 h-4 hover:bg-[#333333] rounded transition ${activeTabId === tab.filePath ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+                onClick={(e) => {
+                   e.stopPropagation();
+                   closeTab(e, tab.filePath);
+                }}
+                className={`ml-2 flex items-center justify-center p-0.5 hover:bg-[#30363d] rounded transition ${activeTabId === tab.filePath ? "opacity-100 text-[#8b949e] hover:text-[#c9d1d9]" : "opacity-0 group-hover:opacity-100 text-[#8b949e]"}`}
               >
-                <svg className="w-3 h-3 text-[#cccccc]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X size={14} />
               </button>
             </div>
           ))
         ) : (
-          <div className="px-4 py-1.5 text-xs text-[#8b949e] italic pb-2">No files open</div>
+          <div className="px-5 py-2.5 text-sm text-[#8b949e] italic pb-2 flex items-center gap-2 font-light">
+             No files open in workspace
+          </div>
         )}
+
+        {/* This fills the bottom gap for inactive tabs perfectly */}
+        <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-[#30363d] z-0 pointer-events-none"></div>
       </div>
 
-      <div className="flex-grow relative">
+      <div className="flex-grow relative bg-[#0d1117] z-10">
         <MonacoEditor
           key={editorState?.filePath} // 🔥 force reload
           height="100%"
@@ -100,9 +109,17 @@ export default function CodeEditor() {
             minimap: { enabled: false },
             fontSize: 14,
             wordWrap: "on",
-            padding: { top: 16 },
+            padding: { top: 24, bottom: 24 },
             smoothScrolling: true,
-            cursorSmoothCaretAnimation: "on"
+            cursorSmoothCaretAnimation: "on",
+            scrollbar: {
+              vertical: 'visible',
+              useShadows: true,
+              alwaysConsumeMouseWheel: false,
+            },
+            fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
+            lineHeight: 1.6,
+            renderLineHighlight: "all",
           }}
         />
       </div>
