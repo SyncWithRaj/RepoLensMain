@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { FileMetadata } from "../models/fileMetadata.model.js";
 import { CodeRelationship } from "../models/relationship.model.js";
+import { CodeEntity } from "../models/codeEntity.model.js";
 import { Repository } from "../models/repo.model.js";
 import path from "path";
 
@@ -22,6 +23,9 @@ export const getRepositoryGraph = async (req: Request, res: Response): Promise<a
         
         // Fetch all relationships for this repo
         const relationships = await CodeRelationship.find({ repoId }).lean();
+
+        // Fetch all code entities for this repo
+        const entities = await CodeEntity.find({ repoId }).lean();
 
         const nodes: any[] = [];
         const edges: any[] = [];
@@ -53,7 +57,8 @@ export const getRepositoryGraph = async (req: Request, res: Response): Promise<a
                     totalLines: file.totalLines,
                     hasReactComponent: file.hasReactComponent,
                     isBackendFile: file.isBackendFile,
-                    isTestFile: file.isTestFile
+                    isTestFile: file.isTestFile,
+                    hasDefaultExport: file.hasDefaultExport
                 }
             });
 
@@ -107,14 +112,54 @@ export const getRepositoryGraph = async (req: Request, res: Response): Promise<a
 
         const nodeIds = new Set(nodes.map(n => n.id));
 
-        // 2. Add structural Code Dependencies (imports, calls, etc.)
+        // 2. Add Code Entities as nodes
+        for (const entity of entities) {
+            const entityId = `${entity.filePath}::${entity.name}`;
+            nodes.push({
+                id: entityId,
+                path: entity.filePath,
+                name: entity.name,
+                type: entity.type,
+                val: 5, // smaller base size for code entities
+                group: entity.filePath.split('/')[0] || "root",
+                metadata: {
+                    content: entity.content,
+                    parameters: entity.parameters,
+                    returnType: entity.returnType,
+                    startLine: entity.startLine,
+                    endLine: entity.endLine
+                }
+            });
+            nodeIds.add(entityId);
+
+            // Link parent file to this entity
+            if (nodeIds.has(entity.filePath)) {
+                edges.push({
+                    source: entity.filePath,
+                    target: entityId,
+                    label: "contains",
+                    line: 0
+                });
+            }
+        }
+
+        // 3. Add structural Code Dependencies (imports, calls, etc.)
         for (const rel of relationships) {
             if (rel.fromFilePath && rel.toFilePath) {
-                if (nodeIds.has(rel.fromFilePath) && nodeIds.has(rel.toFilePath)) {
+                const sourceEntityId = `${rel.fromFilePath}::${rel.fromName}`;
+                const targetEntityId = `${rel.toFilePath}::${rel.toName}`;
+                
+                let sourceNodeId = rel.fromFilePath;
+                let targetNodeId = rel.toFilePath;
+
+                if (nodeIds.has(sourceEntityId)) sourceNodeId = sourceEntityId;
+                if (nodeIds.has(targetEntityId)) targetNodeId = targetEntityId;
+
+                if (nodeIds.has(sourceNodeId) && nodeIds.has(targetNodeId) && sourceNodeId !== targetNodeId) {
                     edges.push({
-                        source: rel.fromFilePath as string,
-                        target: rel.toFilePath as string,
-                        label: rel.relationType, // "imports", "calls", "handles", etc.
+                        source: sourceNodeId as string,
+                        target: targetNodeId as string,
+                        label: rel.relationType,
                         line: rel.line
                     });
                 }

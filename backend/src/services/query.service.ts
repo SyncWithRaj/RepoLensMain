@@ -4,7 +4,7 @@ import { generateAnswer } from "./llm.service.js";
 import { searchVectors } from "./vector.service.js";
 import path from "path";
 
-export const askQuestion = async (repoId: string, question: string) => {
+export const askQuestion = async (repoId: string, question: string, history: any[] = []) => {
     const repo = await Repository.findById(repoId);
     if (!repo) throw new Error("Repository not found");
 
@@ -39,12 +39,14 @@ export const askQuestion = async (repoId: string, question: string) => {
 
     }).filter((c: any) => c !== null);
 
+    const formattedHistory = history.slice(-6).map(msg => `${msg.role === 'user' ? 'User' : 'RepoLens'}: ${msg.content}`).join('\n\n');
+
     const prompt = `
 You are RepoLens, an AI assistant that helps developers understand a codebase.
 
 Your job is to analyze code snippets from a repository and explain them clearly.
 
-User Question:
+${formattedHistory ? `Previous Conversation History:\n${formattedHistory}\n\n` : ''}User Question:
 ${question}
 
 Relevant Code Context:

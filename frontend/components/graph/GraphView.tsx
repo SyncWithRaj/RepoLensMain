@@ -16,7 +16,7 @@ export default function GraphView({ repoId }: { repoId: string }) {
   const fgRef = useRef<any>(null);
   const [hoverNode, setHoverNode] = useState<any | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(new Set());
+  const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchGraph = async () => {
@@ -29,6 +29,13 @@ export default function GraphView({ repoId }: { repoId: string }) {
             nodes: res.data.graph.nodes,
             links: res.data.graph.edges
           });
+          
+          // Collapse all files by default so code entities are not visible immediately
+          const defaultCollapsed = new Set<string>();
+          res.data.graph.nodes.forEach((n: any) => {
+            if (n.type === "file") defaultCollapsed.add(n.id);
+          });
+          setCollapsedNodes(defaultCollapsed);
         }
       } catch (err) {
         console.error("Error fetching graph data:", err);
@@ -55,7 +62,7 @@ export default function GraphView({ repoId }: { repoId: string }) {
       });
     };
 
-    collapsedFolders.forEach(folderId => findDescendants(folderId));
+    collapsedNodes.forEach(nodeId => findDescendants(nodeId));
 
     const nodes = graphData.nodes.filter((n: any) => !hiddenNodes.has(n.id));
     const links = graphData.links.filter((l: any) => {
@@ -65,7 +72,7 @@ export default function GraphView({ repoId }: { repoId: string }) {
     });
     
     return { nodes, links };
-  }, [graphData, collapsedFolders]);
+  }, [graphData, collapsedNodes]);
 
   // Adjust force graph physics to make it cleaner and less clumped
   useEffect(() => {
@@ -76,32 +83,49 @@ export default function GraphView({ repoId }: { repoId: string }) {
   }, [visibleGraphData]);
 
   const handleNodeClick = useCallback(async (node: any) => {
-    if (node.type === "folder") {
-      setCollapsedFolders(prev => {
+    if (node.type === "folder" || node.type === "file") {
+      setCollapsedNodes(prev => {
         const next = new Set(prev);
         if (next.has(node.id)) next.delete(node.id);
         else next.add(node.id);
         return next;
       });
-      return;
     }
 
-    try {
-      const res = await api.get("/files/content", { params: { repoId, path: node.path || node.id } });
-      const ext = node.name.split(".").pop()?.toLowerCase() || "";
-      const map: Record<string, string> = {
-        js: "javascript", jsx: "javascript",
-        ts: "typescript", tsx: "typescript",
-        html: "html", css: "css", json: "json", md: "markdown"
-      };
+    if (node.type === "folder") return;
 
-      setEditorState({
-        filePath: node.id,
-        content: res.data.content,
-        language: map[ext] || "plaintext"
-      });
-    } catch (err) {
-      console.error("Failed to load file content:", err);
+    if (node.type === "file") {
+      try {
+        const res = await api.get("/files/content", { params: { repoId, path: node.path || node.id } });
+        const ext = node.name.split(".").pop()?.toLowerCase() || "";
+        const map: Record<string, string> = {
+          js: "javascript", jsx: "javascript",
+          ts: "typescript", tsx: "typescript",
+          html: "html", css: "css", json: "json", md: "markdown"
+        };
+
+        setEditorState({
+          filePath: node.id,
+          content: res.data.content,
+          language: map[ext] || "plaintext"
+        });
+      } catch (err) {
+        console.error("Failed to load file content:", err);
+      }
+    } else {
+        // Code entity
+        const ext = node.path?.split(".").pop()?.toLowerCase() || "";
+        const map: Record<string, string> = {
+          js: "javascript", jsx: "javascript",
+          ts: "typescript", tsx: "typescript",
+        };
+
+        setEditorState({
+          filePath: node.path || node.id,
+          content: node.metadata?.content || "",
+          language: map[ext] || "plaintext",
+          startLineNumber: node.metadata?.startLine
+        });
     }
   }, [repoId, setEditorState]);
 
@@ -155,14 +179,38 @@ export default function GraphView({ repoId }: { repoId: string }) {
                 <div className="text-[#8b949e]">Descendants</div>
                 <div className="text-right text-[#c9d1d9]">{hoverNode.metadata?.descendentCount || 0}</div>
                 <div className="text-[#8b949e]">Status</div>
-                <div className="text-right text-[#c9d1d9]">{collapsedFolders.has(hoverNode.id) ? "Collapsed" : "Expanded"}</div>
+                <div className="text-right text-[#c9d1d9]">{collapsedNodes.has(hoverNode.id) ? "Collapsed" : "Expanded"}</div>
               </>
-            ) : (
+            ) : hoverNode.type === "file" ? (
               <>
                 <div className="text-[#8b949e]">Lines</div>
                 <div className="text-right text-[#c9d1d9]">{hoverNode.metadata?.totalLines || 0}</div>
                 <div className="text-[#8b949e]">Size</div>
-                <div className="text-right text-[#c9d1d9]">{(hoverNode.metadata?.fileSize / 1024).toFixed(1)} KB</div>
+                <div className="text-right text-[#c9d1d9]">{((hoverNode.metadata?.fileSize || 0) / 1024).toFixed(1)} KB</div>
+                {hoverNode.metadata?.hasReactComponent && <div className="col-span-2 text-[#58a6ff] text-right font-semibold">React Component</div>}
+                {hoverNode.metadata?.isBackendFile && <div className="col-span-2 text-[#2ea043] text-right font-semibold">Backend API</div>}
+                {hoverNode.metadata?.isTestFile && <div className="col-span-2 text-[#d2a8ff] text-right font-semibold">Test File</div>}
+                {hoverNode.metadata?.hasDefaultExport && <div className="col-span-2 text-[#e3b341] text-right font-semibold">Default Export</div>}
+                
+                <div className="text-[#8b949e] border-t border-[#30363d] pt-1 mt-1 col-span-2">Entities</div>
+                <div className="text-right text-[#c9d1d9] col-span-2">{collapsedNodes.has(hoverNode.id) ? "Hidden (Click to expand)" : "Visible"}</div>
+              </>
+            ) : (
+              <>
+                <div className="text-[#8b949e]">Path</div>
+                <div className="text-right text-[#c9d1d9] font-mono truncate" title={hoverNode.path}>{hoverNode.path}</div>
+                {(hoverNode.metadata?.startLine !== undefined) && (
+                   <>
+                    <div className="text-[#8b949e]">Lines</div>
+                    <div className="text-right text-[#c9d1d9]">{hoverNode.metadata.startLine} - {hoverNode.metadata.endLine}</div>
+                   </>
+                )}
+                {hoverNode.metadata?.returnType && (
+                   <>
+                    <div className="text-[#8b949e]">Returns</div>
+                    <div className="text-right text-[#c9d1d9] font-mono">{hoverNode.metadata.returnType}</div>
+                   </>
+                )}
               </>
             )}
           </div>
@@ -184,10 +232,17 @@ export default function GraphView({ repoId }: { repoId: string }) {
           
           let color = "#c9d1d9";
           if (node.id === editorState?.filePath) color = "#ff7b72";
-          else if (node.type === "folder") color = collapsedFolders.has(node.id) ? "#a371f7" : "#e3b341"; // gold for folders
-          else if (node.metadata?.hasReactComponent) color = "#58a6ff";
-          else if (node.metadata?.isBackendFile) color = "#2ea043";
-          else if (node.metadata?.isTestFile) color = "#d2a8ff";
+          else if (node.type === "folder") color = collapsedNodes.has(node.id) ? "#a371f7" : "#e3b341"; // gold for folders
+          else if (node.type === "file") {
+            if (node.metadata?.hasReactComponent) color = "#58a6ff";
+            else if (node.metadata?.isBackendFile) color = "#2ea043";
+            else if (node.metadata?.isTestFile) color = "#d2a8ff";
+            else color = "#c9d1d9";
+          } else {
+             color = ["function", "arrow", "method"].includes(node.type) ? "#d18616" :
+                     ["class", "interface"].includes(node.type) ? "#4ec9b0" :
+                     ["import", "export"].includes(node.type) ? "#c586c0" : "#569cd6";
+          }
 
           const nodeSize = node.type === "folder" ? Math.max(8, node.val) : Math.max(4, node.val);
           const r = Math.sqrt(nodeSize) * 1.5; // Radius approx
@@ -196,9 +251,12 @@ export default function GraphView({ repoId }: { repoId: string }) {
           if (node.type === "folder") {
             // Draw square for folder
             ctx.rect(node.x - r, node.y - r, r * 2, r * 2);
-          } else {
+          } else if (node.type === "file") {
             // Draw circle for file
             ctx.arc(node.x, node.y, r, 0, 2 * Math.PI, false);
+          } else {
+            // Entities: smaller circles
+            ctx.arc(node.x, node.y, r * 0.7, 0, 2 * Math.PI, false);
           }
           ctx.fillStyle = color;
           ctx.fill();
@@ -211,22 +269,23 @@ export default function GraphView({ repoId }: { repoId: string }) {
           }
 
           // Draw Text Label below node if zoomed in, or if it's a major folder
-          if (globalScale >= 1.2 || node.type === "folder") {
+          if (globalScale >= 1.2 || node.type === "folder" || node.type === "file") {
              const textY = node.y + r + fontSize / 2 + 2;
              ctx.font = `${fontSize}px Sans-Serif`;
              ctx.textAlign = 'center';
              ctx.textBaseline = 'middle';
-             ctx.fillStyle = node.type === "folder" ? '#e3b341' : '#8b949e'; 
+             ctx.fillStyle = node.type === "folder" ? '#e3b341' : (node.type === "file" ? '#8b949e' : '#a0a0a0'); 
              ctx.fillText(label, node.x, textY);
           }
 
-          // If it's a folder, explicitly draw +/- icon in the center of the square
-          if (node.type === "folder") {
+          // Explicitly draw +/- icon in the center of the square or file circle
+          if (node.type === "folder" || node.type === "file") {
              ctx.fillStyle = '#1e1e1e';
-             ctx.font = `bold ${Math.max(fontSize * 1.2, r * 1.5)}px Sans-Serif`;
+             const iconSize = node.type === "folder" ? Math.max(fontSize * 1.2, r * 1.5) : Math.max(fontSize * 0.8, r * 1.2);
+             ctx.font = `bold ${iconSize}px Sans-Serif`;
              ctx.textAlign = 'center';
              ctx.textBaseline = 'middle';
-             ctx.fillText(collapsedFolders.has(node.id) ? '+' : '−', node.x, node.y);
+             ctx.fillText(collapsedNodes.has(node.id) ? '+' : '−', node.x, node.y);
           }
         }}
         

@@ -28,7 +28,8 @@ export default function ChatPage() {
   const router = useRouter();
   const { setEditorState } = useEditor();
 
-  const [messages, setMessages] = useState<any[]>([]);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [callMessages, setCallMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [repoValid, setRepoValid] = useState<boolean | null>(null);
@@ -47,11 +48,31 @@ export default function ChatPage() {
     if (repoId) checkRepo();
   }, [repoId]);
 
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const chatRes = await api.get(`/history/${repoId}?type=chat`);
+        if (chatRes.data.success) {
+           setChatMessages(chatRes.data.messages || []);
+        }
+        const callRes = await api.get(`/history/${repoId}?type=call`);
+        if (callRes.data.success) {
+           setCallMessages(callRes.data.messages || []);
+        }
+      } catch (err) {
+        console.error("Failed to load history", err);
+      }
+    };
+    if (repoValid) {
+       fetchHistory();
+    }
+  }, [repoValid, repoId]);
+
   const sendMessage = async () => {
     if (!input.trim()) return;
 
     const userMsg = { role: "user", content: input };
-    setMessages((prev) => [...prev, userMsg]);
+    setChatMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
 
@@ -83,9 +104,9 @@ export default function ChatPage() {
         });
       }
 
-      setMessages((prev) => [...prev, aiMsg]);
+      setChatMessages((prev) => [...prev, aiMsg]);
     } catch {
-      setMessages((prev) => [
+      setChatMessages((prev) => [
         ...prev,
         { role: "assistant", content: "Error" },
       ]);
@@ -181,10 +202,12 @@ export default function ChatPage() {
               <div className="h-full bg-[#0d1117] rounded-xl border border-[#30363d] overflow-hidden shadow-sm flex flex-col">
                 <ChatPanel
                   repoId={repoId as string}
-                  messages={messages}
+                  chatMessages={chatMessages}
+                  callMessages={callMessages}
                   input={input}
                   setInput={setInput}
                   sendMessage={sendMessage}
+                  addCallMessages={(newMsgs: any[]) => setCallMessages(prev => [...prev, ...newMsgs])}
                   loading={loading}
                 />
               </div>

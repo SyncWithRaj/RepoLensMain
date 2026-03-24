@@ -11,6 +11,8 @@ import queryRoutes from "./routes/query.route.js";
 import embedRoutes from "./routes/embedRepository.route.js"
 import vectorInitRoutes from "./routes/vectorInit.route.js"
 import fileRoute from "./routes/file.routes.js"
+import callRoutes from "./routes/call.route.js"
+import historyRoutes from "./routes/history.route.js"
 const app = express();
 
 app.use(
@@ -19,7 +21,7 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
 // app.use(
 //     session({
@@ -37,6 +39,8 @@ app.use("/api/v1/query", queryRoutes);
 app.use("/api/v1/embed", embedRoutes);
 app.use("/api/v1/vector", vectorInitRoutes);
 app.use("/api/v1/files", fileRoute);
+app.use("/api/v1/call", callRoutes);
+app.use("/api/v1/history", historyRoutes);
 app.use(errorHandler)
 
 export default app;

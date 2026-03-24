@@ -14,7 +14,31 @@ export const ask = async (req: Request, res: Response) => {
       });
     }
 
-    const result = await askQuestion(repoId, question);
+    const userId = (req as any).user?._id;
+    let historyMessages: any[] = [];
+    let ChatHistory: any = null;
+
+    if (userId) {
+       const ChatHistoryModule = await import("../models/chatHistory.model.js");
+       ChatHistory = ChatHistoryModule.default;
+       const historyDoc = await ChatHistory.findOne({ userId, repoId, type: 'chat' });
+       if (historyDoc) {
+           historyMessages = historyDoc.messages;
+       }
+    }
+
+    const result = await askQuestion(repoId, question, historyMessages);
+
+    if (userId && ChatHistory) {
+       await ChatHistory.findOneAndUpdate(
+         { userId, repoId, type: 'chat' },
+         { $push: { messages: { $each: [
+             { role: 'user', content: question },
+             { role: 'assistant', content: result.answer, references: result.references || [] }
+         ] } } },
+         { upsert: true }
+       );
+    }
 
     res.json({
       success: true,
