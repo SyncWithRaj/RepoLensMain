@@ -11,6 +11,11 @@ import { FileContent } from "../models/fileContent.model.js";
 import { QdrantClient } from "@qdrant/js-client-rest";
 import { getTempRepoPath } from "../utils/cleanup.util.js";
 
+// Prevent Git from trying to prompt for credentials in server environments (Render, Docker, etc.)
+// Without this, Git tries to open /dev/tty which doesn't exist in containers
+process.env.GIT_TERMINAL_PROMPT = '0';
+process.env.GIT_ASKPASS = 'echo';
+
 const git = simpleGit();
 
 export const addRepository = async (req: Request, res: Response) => {
@@ -55,7 +60,12 @@ export const addRepository = async (req: Request, res: Response) => {
         try {
             console.log("🚀 Cloning repo...");
 
-            await git.clone(githubUrl, repoPath, ["--depth", "1"]);
+            // Clone with -c flags to prevent credential prompts on Render/Docker
+            await git.clone(githubUrl, repoPath, [
+                "--depth", "1",
+                "-c", "core.askPass=",
+                "-c", "credential.helper=",
+            ]);
 
             console.log("✅ CLONE DONE");
 
