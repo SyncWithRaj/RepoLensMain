@@ -17,7 +17,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000", // your frontend
+    origin: process.env.FRONTEND_URL || "https://repolens-murfai-1.onrender.com/", // your frontend
     credentials: true,
   })
 );
