@@ -12,9 +12,10 @@ import { QdrantClient } from "@qdrant/js-client-rest";
 import { getTempRepoPath } from "../utils/cleanup.util.js";
 
 // Prevent Git from trying to prompt for credentials in server environments (Render, Docker, etc.)
-// Without this, Git tries to open /dev/tty which doesn't exist in containers
+// GIT_TERMINAL_PROMPT=0 disables interactive prompts without injecting fake credentials
 process.env.GIT_TERMINAL_PROMPT = '0';
-process.env.GIT_ASKPASS = 'echo';
+// Remove GIT_ASKPASS if set — setting it to 'echo' sends garbage as credentials
+delete process.env.GIT_ASKPASS;
 
 const git = simpleGit();
 
@@ -60,10 +61,9 @@ export const addRepository = async (req: Request, res: Response) => {
         try {
             console.log("🚀 Cloning repo...");
 
-            // Clone with -c flags to prevent credential prompts on Render/Docker
+            // Disable any stored credential helpers that might provide stale/bad creds
             await git.clone(githubUrl, repoPath, [
                 "--depth", "1",
-                "-c", "core.askPass=",
                 "-c", "credential.helper=",
             ]);
 

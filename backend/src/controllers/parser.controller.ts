@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
+import simpleGit from "simple-git";
 
 import { Repository } from "../models/repo.model.js";
 import { scanCodeFiles } from "../modules/indexer/fileScanner.js";
@@ -11,7 +12,7 @@ import { CodeEntity } from "../models/codeEntity.model.js";
 import { CodeRelationship } from "../models/relationship.model.js";
 import { FileMetadata } from "../models/fileMetadata.model.js";
 import { FileContent } from "../models/fileContent.model.js";
-import { cleanupTempRepo } from "../utils/cleanup.util.js";
+import { cleanupTempRepo, getTempRepoPath } from "../utils/cleanup.util.js";
 
 
 // Directories/files to skip when saving to DB
@@ -129,8 +130,10 @@ export async function parseRepoController(
   try {
 
     const { id } = req.params;
+    console.log("📝 Parse request received for repo:", id);
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
+      console.log("❌ Invalid repo ID:", id);
       return res.status(400).json({
         success: false,
         message: "Invalid repository id"
@@ -140,30 +143,93 @@ export async function parseRepoController(
     const repo = await Repository.findById(id);
 
     if (!repo) {
+      console.log("❌ Repo not found in DB:", id);
       return res.status(404).json({
         success: false,
         message: "Repository not found"
       });
     }
 
+    console.log("📂 Repo found:", repo.name, "| localPath:", repo.localPath, "| status:", repo.status);
+
     if (!repo.localPath) {
+      console.log("❌ No localPath set for repo:", id);
       return res.status(400).json({
         success: false,
         message: "Repository localPath not found"
       });
     }
 
+    // Check if the cloned files actually exist on disk
+    // On Render/serverless, /tmp can be wiped between requests
+    let repoPath = repo.localPath;
+
+    if (!fs.existsSync(repoPath) || fs.readdirSync(repoPath).length === 0) {
+      console.log("⚠️ Temp clone missing, re-cloning repo...");
+
+      // Re-clone into a fresh /tmp path
+      const userId = repo.user.toString();
+      const repoId = repo._id.toString();
+      repoPath = getTempRepoPath(userId, repoId);
+
+      // Clean up any leftover empty directory
+      if (fs.existsSync(repoPath)) {
+        fs.rmSync(repoPath, { recursive: true, force: true });
+      }
+      fs.mkdirSync(repoPath, { recursive: true });
+
+      try {
+        const git = simpleGit();
+        await git.clone(repo.githubUrl, repoPath, [
+          "--depth", "1",
+          "-c", "credential.helper=",
+        ]);
+        console.log("✅ Re-clone successful");
+
+        // Update localPath in DB
+        repo.localPath = repoPath;
+        await repo.save();
+      } catch (cloneErr: any) {
+        console.error("❌ Re-clone failed:", cloneErr?.message);
+        cleanupTempRepo(repoPath);
+
+        repo.status = "failed";
+        await repo.save();
+
+        return res.status(500).json({
+          success: false,
+          message: "Failed to re-clone repository for parsing: " + (cloneErr?.message || "Unknown error")
+        });
+      }
+    }
+
+    // Verify directory has files
+    const dirContents = fs.readdirSync(repoPath);
+    console.log("📁 Directory contents:", dirContents.length, "items");
+
+    if (dirContents.length === 0) {
+      console.error("❌ Directory is empty after clone:", repoPath);
+
+      repo.status = "failed";
+      await repo.save();
+
+      return res.status(400).json({
+        success: false,
+        message: "Repository directory is empty. Clone may have failed."
+      });
+    }
 
     repo.status = "indexing";
     await repo.save();
-
+    console.log("📊 Status set to indexing");
 
     await CodeEntity.deleteMany({ repoId: id });
     await CodeRelationship.deleteMany({ repoId: id });
     await FileMetadata.deleteMany({ repoId: id });
+    console.log("🗑️ Old data cleared");
 
-
-    const scannedFiles = scanCodeFiles(repo.localPath);
+    const scannedFiles = scanCodeFiles(repoPath);
+    console.log("🔍 Scanned files:", scannedFiles.length);
 
     if (!scannedFiles.length) {
 
@@ -171,7 +237,7 @@ export async function parseRepoController(
       await repo.save();
 
       // Cleanup temp clone even if no files found
-      cleanupTempRepo(repo.localPath);
+      cleanupTempRepo(repoPath);
 
       return res.status(200).json({
         success: true,
@@ -181,23 +247,26 @@ export async function parseRepoController(
 
 
     const filePaths = scannedFiles.map(file => file.absolutePath);
+    console.log("🔧 Starting AST parsing for", filePaths.length, "files...");
 
     const result = await processRepositoryParsing(id, filePaths);
+    console.log("✅ AST parsing complete:", result);
 
 
     // 📁 Save all file tree + contents to MongoDB before cleanup
     console.log("📁 Saving file tree and contents to MongoDB...");
-    const savedFilesCount = await saveRepoFilesToDB(id, repo.localPath);
+    const savedFilesCount = await saveRepoFilesToDB(id, repoPath);
     console.log(`✅ Saved ${savedFilesCount} files/dirs to MongoDB`);
 
 
     // 🧹 Cleanup temp clone from /tmp — MongoDB data is safe
     console.log("🧹 Cleaning up temp clone...");
-    cleanupTempRepo(repo.localPath);
+    cleanupTempRepo(repoPath);
 
 
     repo.status = "indexed";
     await repo.save();
+    console.log("✅ Repo status set to indexed");
 
 
     return res.status(200).json({
@@ -206,9 +275,10 @@ export async function parseRepoController(
       savedFiles: savedFilesCount
     });
 
-  } catch (error) {
+  } catch (error: any) {
 
-    console.error("Parse Controller Error:", error);
+    console.error("❌ Parse Controller Error:", error?.message || error);
+    console.error("❌ Stack:", error?.stack);
 
     // Try to cleanup temp clone on error too
     try {
@@ -218,8 +288,13 @@ export async function parseRepoController(
         cleanupTempRepo(repo.localPath);
       }
       await Repository.findByIdAndUpdate(id, { status: "failed" });
-    } catch { }
+    } catch (cleanupError) {
+      console.error("❌ Error during cleanup:", cleanupError);
+    }
 
-    next(error);
+    return res.status(500).json({
+      success: false,
+      message: error?.message || "Parsing failed",
+    });
   }
 }
