@@ -27,7 +27,7 @@ router.get("/github/callback", passport.authenticate("github", { session: false 
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    res.redirect("http://localhost:3000/dashboard");
+    res.redirect("https://repolens-murfai-1.onrender.com/dashboard");
 }
 )
 
