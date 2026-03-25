@@ -7,7 +7,9 @@ import { Repository } from "../models/repo.model.js";
 import { CodeEntity } from "../models/codeEntity.model.js";
 import { CodeRelationship } from "../models/relationship.model.js";
 import { FileMetadata } from "../models/fileMetadata.model.js";
+import { FileContent } from "../models/fileContent.model.js";
 import { QdrantClient } from "@qdrant/js-client-rest";
+import { getTempRepoPath } from "../utils/cleanup.util.js";
 
 const git = simpleGit();
 
@@ -43,13 +45,7 @@ export const addRepository = async (req: Request, res: Response) => {
             status: "cloning",
         });
 
-        const repoPath = path.join(
-            process.cwd(),
-            "storage",
-            "repos",
-            user._id.toString(),
-            repo._id.toString()
-        );
+        const repoPath = getTempRepoPath(user._id.toString(), repo._id.toString());
 
         fs.mkdirSync(repoPath, { recursive: true });
 
@@ -173,7 +169,9 @@ export const deleteRepository = async (req: Request, res: Response) => {
             });
         }
 
-        if (fs.existsSync(repo.localPath)) {
+        // Temp clone is already deleted after parsing.
+        // Only attempt disk cleanup if localPath still exists (edge case)
+        if (repo.localPath && fs.existsSync(repo.localPath)) {
             fs.rmSync(repo.localPath, { recursive: true, force: true });
         }
 
@@ -221,6 +219,7 @@ export const deleteRepository = async (req: Request, res: Response) => {
         await CodeEntity.deleteMany({ repoId: repoId });
         await CodeRelationship.deleteMany({ repoId: repoId });
         await FileMetadata.deleteMany({ repoId: repoId });
+        await FileContent.deleteMany({ repoId: repoId });
 
         await repo.deleteOne();
 
@@ -248,10 +247,11 @@ export const scanRepository = async (req: Request, res: Response) => {
         })
 
         if (!repo) {
-            return res.status(404).json({ message: "Repository nnot found" });
+            return res.status(404).json({ message: "Repository not found" });
         }
 
-        const files = scanCodeFiles(repo.localPath);
+        // Read from FileMetadata in DB instead of disk
+        const files = await FileMetadata.find({ repoId: repo._id }).select("-__v").lean();
 
         return res.json({
             success: true,

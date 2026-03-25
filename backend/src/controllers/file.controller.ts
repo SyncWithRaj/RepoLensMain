@@ -1,11 +1,56 @@
-import fs from "fs";
 import path from "path";
 import type { Request, Response } from "express";
 import { Repository } from "../models/repo.model.js";
+import { FileContent } from "../models/fileContent.model.js";
+
+/**
+ * Build a nested tree structure from flat FileContent documents.
+ */
+function buildFileTree(docs: any[]): any[] {
+  // Build a map: relativePath -> node
+  const nodeMap = new Map<string, any>();
+  const roots: any[] = [];
+
+  // First pass: create all nodes
+  for (const doc of docs) {
+    const node: any = {
+      name: doc.fileName,
+      path: doc.relativePath,
+      type: doc.isDirectory ? "folder" : "file",
+    };
+
+    if (doc.isDirectory) {
+      node.children = [];
+    }
+
+    nodeMap.set(doc.relativePath, node);
+  }
+
+  // Second pass: build parent-child relationships
+  for (const doc of docs) {
+    const node = nodeMap.get(doc.relativePath);
+    const parentPath = path.dirname(doc.relativePath);
+
+    if (parentPath === "." || parentPath === "") {
+      // Top-level item
+      roots.push(node);
+    } else {
+      const parentNode = nodeMap.get(parentPath);
+      if (parentNode && parentNode.children) {
+        parentNode.children.push(node);
+      } else {
+        // Parent not found (shouldn't happen), add as root
+        roots.push(node);
+      }
+    }
+  }
+
+  return roots;
+}
 
 export const getFileTree = async (req: Request, res: Response) => {
   try {
-    const { repoId } = req.params;
+    const repoId = req.params.repoId as string;
 
     const repo = await Repository.findById(repoId);
 
@@ -13,37 +58,12 @@ export const getFileTree = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Repository not found" });
     }
 
-    const basePath = repo.localPath;
+    // Read file tree from MongoDB instead of disk
+    const fileDocs = await FileContent.find({ repoId: repo._id })
+      .select("relativePath fileName isDirectory")
+      .lean();
 
-    function readDirRecursive(dir: string): any[] {
-      const items = fs.readdirSync(dir);
-
-      return items
-        .filter(item => item !== ".git") // ignore .git
-        .map((item) => {
-          const fullPath = path.join(dir, item);
-          const stat = fs.statSync(fullPath);
-
-          const relativePath = path.relative(basePath, fullPath);
-
-          if (stat.isDirectory()) {
-            return {
-              name: item,
-              path: relativePath,
-              type: "folder",
-              children: readDirRecursive(fullPath),
-            };
-          }
-
-          return {
-            name: item,
-            path: relativePath,
-            type: "file",
-          };
-        });
-    }
-
-    const tree = readDirRecursive(basePath);
+    const tree = buildFileTree(fileDocs);
 
     res.json({ files: tree });
 
@@ -55,7 +75,8 @@ export const getFileTree = async (req: Request, res: Response) => {
 
 export const getFileContent = async (req: Request, res: Response) => {
   try {
-    const { repoId, path: filePath } = req.query;
+    const repoId = req.query.repoId as string;
+    const filePath = req.query.path as string;
 
     const repo = await Repository.findById(repoId);
 
@@ -63,17 +84,26 @@ export const getFileContent = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Repository not found" });
     }
 
-    const safePath = (filePath as string).replace(/^\/+/, "");
+    const safePath = filePath.replace(/^\/+/, "");
 
-    const fullPath = path.join(repo.localPath, safePath);
+    // Read file content from MongoDB instead of disk
+    const fileDoc = await FileContent.findOne({
+      repoId: repo._id,
+      relativePath: safePath,
+      isDirectory: false,
+    }).lean();
 
-    if (!fs.existsSync(fullPath)) {
+    if (!fileDoc) {
       return res.status(404).json({ message: "File not found" });
     }
 
-    const content = fs.readFileSync(fullPath, "utf-8");
+    if (fileDoc.content === null) {
+      return res.status(200).json({
+        content: "// [Binary file or content not stored]"
+      });
+    }
 
-    res.json({ content });
+    res.json({ content: fileDoc.content });
 
   } catch (err) {
     console.error(err);
