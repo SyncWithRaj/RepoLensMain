@@ -5,6 +5,7 @@ import api from "@/lib/axios";
 import { getLanguage } from "@/utils/getLanguage";
 import { useRef, useEffect, useState } from "react";
 import { Send, Bot, User, Code2, Mic, Square, Loader2, Phone, MessageSquare, PhoneOff, Trash2 } from "lucide-react";
+import { useToast } from "@/context/ToastContext";
 
 // Typewriter hook for streaming effect
 function useTypewriter(text: string, isActive: boolean, speed: number = 12) {
@@ -67,6 +68,7 @@ export default function ChatPanel({
   const [activeTab, setActiveTab] = useState<"chat" | "call">("chat");
   const [callState, setCallState] = useState<"idle" | "listening" | "processing" | "speaking">("idle");
   const callStateRef = useRef<string>("idle");
+  const { toast } = useToast();
 
   useEffect(() => {
     callStateRef.current = callState;
@@ -126,11 +128,13 @@ export default function ChatPanel({
       audioRef.current.src = "";
     }
     setCallState("idle");
+    toast.info("Call ended");
   };
 
   const triggerSendAudio = () => {
     if (callStateRef.current === "listening") {
       setCallState("processing");
+      toast.call("Transcribing audio...");
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop();
       }
@@ -166,7 +170,7 @@ export default function ChatPanel({
 
     } catch (err) {
       console.error("Microphone error:", err);
-      alert("Microphone access denied or unavailable.");
+      toast.error("Microphone access denied or unavailable.");
       cleanupCall();
     }
   };
@@ -197,12 +201,14 @@ export default function ChatPanel({
               { role: "user", content: userText },
               { role: "assistant", content: answer, references: references },
             ]);
+            toast.call("LLM responded");
             setTimeout(scrollToBottom, 500);
           }
 
           if (chunks && chunks.length > 0) {
             console.log("Call Status: SPEAKING (TTS PLAYBACK) - CHUNKED QUEUE STARTING");
             setCallState("speaking");
+            toast.call("Agent speaking...");
             await playTTSQueue(chunks, 0);
           } else {
             if (callStateRef.current !== "idle") startListeningPhase();
@@ -268,6 +274,7 @@ export default function ChatPanel({
     
     if (confirm(confirmMsg)) {
       onDeleteChat(type);
+      toast.success(`${type === "chat" ? "Chat" : "Call"} history deleted`);
     }
   };
 

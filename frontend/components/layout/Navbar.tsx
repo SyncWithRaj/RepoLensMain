@@ -5,12 +5,14 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { ArrowLeft, Terminal } from "lucide-react";
 import api from "@/lib/axios";
+import { useToast } from "@/context/ToastContext";
 
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,9 +38,11 @@ export default function Navbar() {
     try {
       await api.post("/auth/logout");
       setIsAuthenticated(false);
+      toast.success("Logged out successfully");
       router.push("/login");
     } catch (err) {
       console.error("Logout error:", err);
+      toast.error("Logout failed. Please try again.");
     }
   };
 

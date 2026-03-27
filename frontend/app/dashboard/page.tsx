@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { GitBranch, Box, Loader2, Play, Trash2, Github, MessageSquare, Plus, Info } from "lucide-react";
 import api from "@/lib/axios";
+import { useToast } from "@/context/ToastContext";
 
 export default function Dashboard() {
     const router = useRouter();
@@ -14,6 +15,7 @@ export default function Dashboard() {
     const [embeddingRepo, setEmbeddingRepo] = useState<string | null>(null);
     const [indexingRepo, setIndexingRepo] = useState<string | null>(null);
     const pollingRef = useRef<NodeJS.Timeout | null>(null);
+    const { toast } = useToast();
 
     const fetchRepos = useCallback(async () => {
         try {
@@ -54,11 +56,14 @@ export default function Dashboard() {
         if (!githubUrl) return;
         try {
             setLoading(true);
+            toast.loading("Cloning repository...");
             await api.post("/repos", { githubUrl });
             setGithubUrl("");
+            toast.success("Repository cloned successfully!");
             fetchRepos();
         } catch (err) {
             console.error("Clone repo error:", err);
+            toast.error("Failed to clone repository. Check the URL and try again.");
         }
         setLoading(false);
     };
@@ -70,27 +75,33 @@ export default function Dashboard() {
             setRepos(prev => prev.map(r =>
                 r._id === repoId ? { ...r, status: "indexing" } : r
             ));
+            toast.loading("Indexing repository architecture...");
 
             // Start polling for status updates
             if (pollingRef.current) clearInterval(pollingRef.current);
             pollingRef.current = setInterval(fetchRepos, 3000);
 
             await api.post(`/repos/${repoId}/parse`);
+            toast.success("Repository indexed successfully!");
             fetchRepos();
         } catch (err) {
             console.error("Index repo error:", err);
-            fetchRepos(); // Refresh to get actual status on error
+            toast.error("Indexing failed. Please try again.");
+            fetchRepos();
         }
     };
 
     const embedRepo = async (repoId: string) => {
         try {
             setEmbeddingRepo(repoId);
+            toast.loading("Preparing AI agent for chat...");
             await api.post("/vector/init");
             await api.post(`/embed/${repoId}`);
+            toast.success("AI agent ready! Redirecting to chat...");
             router.push(`/chat/${repoId}`);
         } catch (err) {
             console.error("Embed repo error:", err);
+            toast.error("Failed to prepare AI agent. Try again.");
         } finally {
             setEmbeddingRepo(null);
         }
@@ -102,9 +113,11 @@ export default function Dashboard() {
 
         try {
             await api.delete(`/repos/${repoId}`);
+            toast.success("Repository deleted successfully");
             fetchRepos();
         } catch (err) {
             console.error("Delete repo error:", err);
+            toast.error("Failed to delete repository");
         }
     };
 

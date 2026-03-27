@@ -10,6 +10,7 @@ import ChatPanel from "@/components/chat/ChatPanel";
 import { Panel, Group, Separator } from "react-resizable-panels";
 import { Files, MessageSquare, Settings } from "lucide-react";
 import { useEditor } from "@/context/EditorContext";
+import { useToast } from "@/context/ToastContext";
 
 const getLanguage = (filename: string) => {
   const ext = filename.split('.').pop()?.toLowerCase();
@@ -27,6 +28,7 @@ export default function ChatPage() {
   const { repoId } = useParams();
   const router = useRouter();
   const { setEditorState } = useEditor();
+  const { toast } = useToast();
 
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [callMessages, setCallMessages] = useState<any[]>([]);
@@ -114,8 +116,9 @@ export default function ChatPage() {
     } catch {
       setChatMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Error" },
+        { role: "assistant", content: "Sorry, something went wrong. Please try again." },
       ]);
+      toast.error("Failed to get response. Please try again.");
     }
 
     setLoading(false);
@@ -132,6 +135,7 @@ export default function ChatPage() {
       setStreamingIndex(null);
     } catch (err) {
       console.error("Delete chat error:", err);
+      toast.error("Failed to delete chat history");
     }
   };
 
