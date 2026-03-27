@@ -33,7 +33,7 @@ router.get(
     });
 
     // redirect to frontend
-    res.redirect("https://repolens-murfai-1.onrender.com/dashboard");
+    res.redirect("https://repo-lens-nine.vercel.app/dashboard");
   }
 );
 
