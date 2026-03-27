@@ -20,7 +20,7 @@ const app = express();
 // ✅ CORS FIX
 app.use(
   cors({
-    origin:"https://repo-lens-nine.vercel.app",
+    origin: "https://repolens-workspace.vercel.app",
     credentials: true,
   })
 );

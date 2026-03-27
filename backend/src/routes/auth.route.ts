@@ -33,7 +33,7 @@ router.get(
     });
 
     // redirect to frontend
-    res.redirect("https://repo-lens-nine.vercel.app/dashboard");
+    res.redirect("https://repolens-workspace.vercel.app/dashboard");
   }
 );
 
