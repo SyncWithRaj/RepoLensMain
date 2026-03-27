@@ -8,6 +8,7 @@ import { CodeEntity } from "../models/codeEntity.model.js";
 import { CodeRelationship } from "../models/relationship.model.js";
 import { FileMetadata } from "../models/fileMetadata.model.js";
 import { FileContent } from "../models/fileContent.model.js";
+import ChatHistory from "../models/chatHistory.model.js";
 import { QdrantClient } from "@qdrant/js-client-rest";
 import { getTempRepoPath } from "../utils/cleanup.util.js";
 
