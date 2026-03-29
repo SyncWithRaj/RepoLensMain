@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Github, Twitter, Linkedin, Terminal } from "lucide-react";
+import { Github, Twitter, Linkedin } from "lucide-react";
+import Image from "next/image";
 
 export default function Footer() {
   return (
@@ -13,8 +14,8 @@ export default function Footer() {
           {/* Brand & Intro */}
           <div className="col-span-1 md:col-span-2 space-y-4">
             <Link href="/" className="inline-flex items-center space-x-2 text-white group">
-               <div className="p-1.5 rounded-lg bg-[#21262d] border border-[#30363d] group-hover:border-[#58a6ff]/50 transition-colors">
-                 <Terminal size={20} className="text-[#c9d1d9] group-hover:text-[#58a6ff] transition-colors" />
+               <div className="relative rounded-lg bg-[#21262d] border border-[#30363d] group-hover:border-[#58a6ff]/50 transition-colors flex items-center justify-center overflow-hidden w-10 h-10">
+                 <Image src="/logo.png" alt="Logo" width={50} height={50} className="relative z-10 object-cover w-full h-full" unoptimized priority />
                </div>
                <span className="font-bold text-xl tracking-tight">RepoLens</span>
             </Link>

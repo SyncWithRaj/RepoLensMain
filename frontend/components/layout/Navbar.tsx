@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { ArrowLeft, Terminal } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import api from "@/lib/axios";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 export default function Navbar() {
   const router = useRouter();
@@ -49,18 +50,17 @@ export default function Navbar() {
   const inWorkspace = pathname.startsWith("/graph") || pathname.startsWith("/chat");
 
   return (
-    <nav 
-      className={`sticky top-[15px] mx-[15px] z-50 transition-all duration-500 rounded-2xl ${
-        scrolled 
-          ? "glass-panel shadow-[0_8px_40px_rgba(0,0,0,0.6)] border-b border-[#58a6ff]/20" 
+    <nav
+      className={`sticky top-[15px] mx-[15px] z-50 transition-all duration-500 rounded-2xl ${scrolled
+          ? "glass-panel shadow-[0_8px_40px_rgba(0,0,0,0.6)] border-b border-[#58a6ff]/20"
           : "bg-[#0d1117]/30 backdrop-blur-xl border border-[rgba(255,255,255,0.05)] shadow-[0_4px_30px_rgba(0,0,0,0.1)]"
-      } text-[#c9d1d9] px-6 py-3.5 flex items-center justify-between`}
+        } text-[#c9d1d9] px-6 py-3.5 flex items-center justify-between`}
     >
       <div className="flex items-center space-x-6">
-        
+
         {inWorkspace ? (
           <div className="flex items-center gap-4">
-            <Link 
+            <Link
               href="/dashboard"
               className="flex items-center justify-center p-2 rounded-lg bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] hover:text-white transition-all duration-300 active:scale-95 border border-[#30363d] hover:border-[#8b949e]/50 shadow-sm"
               title="Back to Dashboard"
@@ -74,9 +74,9 @@ export default function Navbar() {
           </div>
         ) : (
           <Link href="/" className="flex items-center space-x-2 text-white group">
-            <div className="relative p-1.5 rounded-lg bg-[#21262d] border border-[#30363d] group-hover:border-[#58a6ff]/50 transition-all duration-300 shadow-inner group-hover:shadow-[0_0_15px_rgba(88,166,255,0.4)]">
-               <div className="absolute inset-0 bg-[#58a6ff] opacity-0 group-hover:opacity-20 blur-md rounded-lg transition-opacity duration-300"></div>
-               <Terminal size={22} className="relative z-10 text-[#c9d1d9] group-hover:text-[#58a6ff] transition-colors duration-300" />
+            <div className="relative rounded-lg bg-[#21262d] border border-[#30363d] group-hover:border-[#58a6ff]/50 transition-all duration-300 shadow-inner group-hover:shadow-[0_0_15px_rgba(88,166,255,0.4)] flex items-center justify-center overflow-hidden w-8 h-8">
+              <div className="absolute inset-0 bg-[#58a6ff] opacity-0 group-hover:opacity-20 blur-md rounded-lg transition-opacity duration-300 z-0"></div>
+              <Image src="/logo.png" alt="RepoLens" width={32} height={32} className="relative z-10 object-cover w-full h-full" unoptimized priority />
             </div>
             <span className="font-bold text-xl tracking-tight bg-clip-text group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-[#58a6ff] transition-all duration-300">RepoLens</span>
           </Link>
@@ -97,13 +97,13 @@ export default function Navbar() {
       <div className="flex items-center space-x-4">
         {isAuthenticated ? (
           <>
-            <Link 
-              href="/dashboard" 
+            <Link
+              href="/dashboard"
               className="text-sm font-medium hover:text-white text-[#c9d1d9] hover:bg-[#21262d] px-3 py-1.5 rounded-md transition-all duration-300"
             >
               Dashboard
             </Link>
-            <button 
+            <button
               onClick={handleLogout}
               className="text-sm text-[#f85149] hover:text-white hover:bg-[#da3633] hover:border-[#da3633] transition-all duration-300 active:scale-95 font-medium bg-[#21262d] border border-[#30363d] px-4 py-1.5 rounded-lg shadow-sm"
             >
@@ -111,8 +111,8 @@ export default function Navbar() {
             </button>
           </>
         ) : (
-          <Link 
-            href="/login" 
+          <Link
+            href="/login"
             className="group relative text-sm font-semibold text-white px-6 py-2 rounded-lg transition-all duration-300 active:scale-95 block overflow-hidden border border-[rgba(255,255,255,0.1)] shadow-[0_0_20px_rgba(35,134,54,0.3)] hover:shadow-[0_0_30px_rgba(46,160,67,0.5)]"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-[#238636] to-[#2ea043] transition-opacity duration-300 group-hover:opacity-90"></div>
