@@ -169,14 +169,14 @@ export default function ChatPage() {
       <div className="w-[56px] min-w-[56px] flex flex-col items-center py-5 bg-[#161b22]/90 backdrop-blur-xl rounded-2xl border border-[#30363d] shadow-sm z-10 space-y-5">
         <button 
           onClick={toggleSidebar}
-          className={`cursor-pointer p-2.5 rounded-xl transition-colors relative group ${activeSidebar === "files" ? "text-[#c9d1d9] bg-[#21262d] shadow-sm border border-[#30363d]" : "text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#21262d] border border-transparent"}`}
+          className={`cursor-pointer p-2.5 rounded-xl transition-colors relative group ${activeSidebar === "files" ? "text-white bg-[#30363d] shadow-md border border-[#484f58]" : "text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#21262d] border border-transparent"}`}
           title="Explorer"
         >
           <Files size={22} strokeWidth={1.5} />
         </button>
         <button 
           onClick={toggleChat}
-          className={`cursor-pointer p-2.5 rounded-xl transition-colors relative group ${showChat ? "text-[#c9d1d9] bg-[#21262d] shadow-sm border border-[#30363d]" : "text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#21262d] border border-transparent"}`}
+          className={`cursor-pointer p-2.5 rounded-xl transition-colors relative group ${showChat ? "text-white bg-[#30363d] shadow-md border border-[#484f58]" : "text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#21262d] border border-transparent"}`}
           title="Chat Panel"
         >
           <MessageSquare size={22} strokeWidth={1.5} />

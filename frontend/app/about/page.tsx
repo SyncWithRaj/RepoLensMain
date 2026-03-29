@@ -15,13 +15,13 @@ export default function AboutPage() {
         <div className="max-w-4xl text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#21262d] border border-[#30363d] text-xs font-semibold text-[#8b949e] mb-8 shadow-sm group hover:border-[#a371f7]/50 hover:text-[#c9d1d9] transition-all cursor-crosshair">
              <Fingerprint size={14} className="text-[#a371f7] group-hover:scale-110 transition-transform" />
-             Enterprise System Documentation
+             Architecture Documentation
           </div>
           <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tighter drop-shadow-md pb-2">
-            Comprehensive <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#58a6ff] via-[#79c0ff] to-[#a371f7]">Codebase Telemetry</span>
+            How <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#58a6ff] via-[#79c0ff] to-[#a371f7]">RepoLens Works</span>
           </h1>
           <p className="max-w-3xl mx-auto text-xl text-[#8b949e] leading-relaxed font-light mt-6">
-            RepoLens Technologies Pvt. Ltd. architects precision tools for indexing, embedding, and visualizing the entire structural hierarchy of complex monolithic and microservice repositories.
+            RepoLens uses AST extraction, vector embeddings, and interactive visual mapping to help you understand large repositories quickly. Open source and built for developers.
           </p>
         </div>
       </section>
@@ -60,9 +60,9 @@ export default function AboutPage() {
                  <Search className="w-8 h-8 text-[#a371f7] group-hover:scale-110 transition-transform duration-300" />
                </div>
                <div>
-                  <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-[#a371f7] transition-colors">Vector Embedding Store</h3>
+                  <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-[#a371f7] transition-colors">Vector Embedding Store (Qdrant)</h3>
                   <p className="text-base text-[#8b949e] leading-relaxed font-light">
-                    By feeding extracted logic through latest models, we map thousands of semantic vectors into pinecone indices. This unlocks the ability to query complex logic patterns independent of explicit keyword presence.
+                    By feeding extracted logic through the Gemini API, we map semantic vectors into Qdrant indices. This unlocks the ability to query complex logic patterns via RAG.
                   </p>
                </div>
              </div>
@@ -92,20 +92,15 @@ export default function AboutPage() {
              <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-[#30363d] to-transparent mb-6"></div>
              
              <code className="block text-[13px] sm:text-[15px] font-mono text-[#c9d1d9] leading-[1.8] relative z-10 w-full overflow-hidden">
-                <span className="text-[#ff7b72] font-semibold">class</span> <span className="text-[#d2a8ff] font-semibold">RepoLensEngine</span> {"{"}<br/>
-                &nbsp;&nbsp;<span className="text-[#8b949e] my-1 inline-block">/**<br/>
-                &nbsp;&nbsp; * @method InitRAGPipeline<br/>
-                &nbsp;&nbsp; * @returns Factual synthesis stream<br/>
-                &nbsp;&nbsp; */</span><br/>
-                &nbsp;&nbsp;<span className="text-[#ff7b72] font-semibold">async</span> <span className="text-[#d2a8ff] font-semibold">executeQuery</span>(<span className="text-[#a5d6ff]">userPrompt</span>) {"{"}<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#ff7b72] font-semibold">const</span> <span className="text-[#a5d6ff]">vector</span> = <span className="text-[#ff7b72] font-semibold">await</span> <span className="text-[#79c0ff]">embed</span>(userPrompt);<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#ff7b72] font-semibold">const</span> <span className="text-[#a5d6ff]">context</span> = <span className="text-[#79c0ff]">pineconeSearch</span>(vector, <span className="text-[#a5d6ff]">topK</span>=<span className="text-[#79c0ff]">5</span>);<br/><br/>
-                
-                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#ff7b72] font-semibold">return</span> <span className="text-[#d2a8ff]">synthesizeLLM</span>(<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#a5d6ff]">context</span>,<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#a5d6ff]">strictFactualAdherence</span>: <span className="text-[#79c0ff]">true</span><br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;);<br/>
-                &nbsp;&nbsp;{"}"}<br/>
+                <span className="text-[#ff7b72] font-semibold">async</span> <span className="text-[#d2a8ff] font-semibold">processRepo</span>(<span className="text-[#a5d6ff]">url</span>: <span className="text-[#79c0ff]">string</span>) {"{"}<br/>
+                &nbsp;&nbsp;<span className="text-[#8b949e] my-1 inline-block">// 1. Ephemeral Clone to /tmp</span><br/>
+                &nbsp;&nbsp;<span className="text-[#ff7b72] font-semibold">await</span> <span className="text-[#d2a8ff]">cloneRepo</span>(url);<br/><br/>
+                &nbsp;&nbsp;<span className="text-[#8b949e] my-1 inline-block">// 2. Parse Code to AST</span><br/>
+                &nbsp;&nbsp;<span className="text-[#ff7b72] font-semibold">const</span> <span className="text-[#a5d6ff]">astNodes</span> = <span className="text-[#ff7b72] font-semibold">await</span> <span className="text-[#d2a8ff]">generateAST</span>();<br/><br/>
+                &nbsp;&nbsp;<span className="text-[#8b949e] my-1 inline-block">// 3. Store in Vector DB (Qdrant)</span><br/>
+                &nbsp;&nbsp;<span className="text-[#ff7b72] font-semibold">await</span> <span className="text-[#d2a8ff]">qdrantClient.upsert</span>(astNodes);<br/><br/>
+                &nbsp;&nbsp;<span className="text-[#8b949e] my-1 inline-block">// 4. Destroy Clone Securely</span><br/>
+                &nbsp;&nbsp;<span className="text-[#ff7b72] font-semibold">await</span> <span className="text-[#d2a8ff]">cleanupTmpDir</span>();<br/>
                 {"}"}
              </code>
           </div>
@@ -117,33 +112,33 @@ export default function AboutPage() {
       <section className="w-full bg-[#161b22]/50 border-y border-[#30363d]/80 py-32 px-6 relative z-10 backdrop-blur-md">
         <div className="text-center mb-20 max-w-2xl mx-auto">
            <Zap className="w-10 h-10 text-[#e3b341] mx-auto mb-6" />
-           <h2 className="text-4xl font-bold text-white mb-4 tracking-tight">Enterprise Promises</h2>
+           <h2 className="text-4xl font-bold text-white mb-4 tracking-tight">Core Project Tenets</h2>
         </div>
         
         <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
            
            <div className="bg-[#0d1117] p-8 rounded-2xl border border-[#30363d] hover:border-[#58a6ff]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(88,166,255,0.1)] group">
               <CheckCircle className="w-10 h-10 text-[#58a6ff] mb-6 group-hover:scale-110 transition-transform" />
-              <h4 className="text-white font-bold text-xl mb-3">Zero Retention Model</h4>
-              <p className="text-[#8b949e] text-[15px] leading-relaxed">LLMs only process explicit chunks retrieved via RAG. Code is never logged for foundational training.</p>
+              <h4 className="text-white font-bold text-xl mb-3">Ephemeral Parsing</h4>
+              <p className="text-[#8b949e] text-[15px] leading-relaxed">Temporary repository clones are destroyed immediately after generating AST vectors and MongoDB models.</p>
            </div>
            
            <div className="bg-[#0d1117] p-8 rounded-2xl border border-[#30363d] hover:border-[#a371f7]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(163,113,247,0.1)] group">
               <Eye className="w-10 h-10 text-[#a371f7] mb-6 group-hover:scale-110 transition-transform" />
-              <h4 className="text-white font-bold text-xl mb-3">Holistic Visibility</h4>
-              <p className="text-[#8b949e] text-[15px] leading-relaxed">Visualize cyclical dependencies immediately with GPU-accelerated massive dynamic architectures.</p>
+              <h4 className="text-white font-bold text-xl mb-3">Force-Graph Visualization</h4>
+              <p className="text-[#8b949e] text-[15px] leading-relaxed">Visualize cyclical dependencies immediately with an interactive generic force-directed webgl graph.</p>
            </div>
            
            <div className="bg-[#0d1117] p-8 rounded-2xl border border-[#30363d] hover:border-[#2ea043]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(46,160,67,0.1)] group">
               <TerminalSquare className="w-10 h-10 text-[#2ea043] mb-6 group-hover:scale-110 transition-transform" />
-              <h4 className="text-white font-bold text-xl mb-3">Native Editor Bounds</h4>
-              <p className="text-[#8b949e] text-[15px] leading-relaxed">Browser editors map directly to retrieved AST lines, scrolling immediately to exact target queries.</p>
+              <h4 className="text-white font-bold text-xl mb-3">Integrated Editor</h4>
+              <p className="text-[#8b949e] text-[15px] leading-relaxed">Browser IDE powered by Monaco directly highlights retrieved syntax lines to help answer your queries.</p>
            </div>
            
            <div className="bg-[#0d1117] p-8 rounded-2xl border border-[#30363d] hover:border-[#e3b341]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(227,179,65,0.1)] group">
               <Activity className="w-10 h-10 text-[#e3b341] mb-6 group-hover:scale-110 transition-transform" />
-              <h4 className="text-white font-bold text-xl mb-3">Sub-200ms Search</h4>
-              <p className="text-[#8b949e] text-[15px] leading-relaxed">Aggressively optimized indexing structures meant to serve enterprise questions faster than generic agents.</p>
+              <h4 className="text-white font-bold text-xl mb-3">Assembly & Murf Voice</h4>
+              <p className="text-[#8b949e] text-[15px] leading-relaxed">Converse directly via voice. Uses AssemblyAI for STT transcription and Murf AI for realistic TTS.</p>
            </div>
 
         </div>

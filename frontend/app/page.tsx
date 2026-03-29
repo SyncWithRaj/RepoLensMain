@@ -25,12 +25,12 @@ export default function Home() {
           </div>
 
           <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-8 text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-[#8b949e] leading-[1.1] pb-2 drop-shadow-[0_0_40px_rgba(255,255,255,0.2)]">
-            Understand your code. <br className="hidden md:block" />
+            Understand your codebase. <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#58a6ff] via-[#a371f7] to-[#58a6ff] bg-[length:200%_auto] animate-shimmer drop-shadow-[0_0_30px_rgba(163,113,247,0.4)]">Faster than ever.</span>
           </h1>
 
           <p className="text-xl md:text-2xl text-[#8b949e] mb-12 max-w-3xl mx-auto leading-relaxed font-light">
-            RepoLens utilizes advanced AI vector embeddings to map your entire repository. Stop reading thousands of lines of code—start asking questions and get exact, contextual explanations instantly.
+            RepoLens parses your repository into a visual force-graph and lets you talk directly to your code via chat or native voice calls powered by Murf AI.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -287,22 +287,22 @@ export default function Home() {
               <div className="mb-6 bg-[rgba(33,38,45,0.5)] w-14 h-14 rounded-lg flex items-center justify-center border border-[rgba(255,255,255,0.05)] shadow-inner group-hover/card:border-[#58a6ff]/50 transition-colors">
                 <Code2 className="text-[#58a6ff] group-hover/card:scale-110 transition-transform duration-300" size={28} />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-3">Engineers</h3>
-              <p className="text-[#8b949e] leading-relaxed">Stop grepping. Ask "where do we parse JWTs?" and immediately get the exact file and function highlighted in the integrated editor.</p>
+              <h3 className="text-2xl font-bold text-white mb-3">Semantic Code Chat</h3>
+              <p className="text-[#8b949e] leading-relaxed">Stop using basic text search. Ask "where is the authentication logic?" and get exact snippets via Retrieval-Augmented Generation.</p>
             </div>
             <div className="glass-panel glass-panel-hover p-8 rounded-2xl transition-all duration-500 group/card">
               <div className="mb-6 bg-[rgba(33,38,45,0.5)] w-14 h-14 rounded-lg flex items-center justify-center border border-[rgba(255,255,255,0.05)] shadow-inner group-hover/card:border-[#a371f7]/50 transition-colors">
                 <Workflow className="text-[#a371f7] group-hover/card:scale-110 transition-transform duration-300" size={28} />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-3">Architects</h3>
-              <p className="text-[#8b949e] leading-relaxed">Visualize deeply nested architectures via the 2D network graph. Understand dependencies and tech debt from a birds-eye view.</p>
+              <h3 className="text-2xl font-bold text-white mb-3">2D Code Mapping</h3>
+              <p className="text-[#8b949e] leading-relaxed">Visualize your repository as an interconnected Force-Graph. Click on nodes to instantly open files in the built-in Monaco Editor.</p>
             </div>
             <div className="glass-panel glass-panel-hover p-8 rounded-2xl transition-all duration-500 group/card">
               <div className="mb-6 bg-[rgba(33,38,45,0.5)] w-14 h-14 rounded-lg flex items-center justify-center border border-[rgba(255,255,255,0.05)] shadow-inner group-hover/card:border-[#2ea043]/50 transition-colors">
                 <Bot className="text-[#2ea043] group-hover/card:scale-110 transition-transform duration-300" size={28} />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-3">New Hires</h3>
-              <p className="text-[#8b949e] leading-relaxed">Slash onboarding time by 80%. Let the AI explainer walk you through business logic rules and API structure step-by-step.</p>
+              <h3 className="text-2xl font-bold text-white mb-3">Voice Conversations</h3>
+              <p className="text-[#8b949e] leading-relaxed">Call your codebase directly from the browser. Built with AssemblyAI speech-to-text and Murf AI text-to-speech for hands-free coding.</p>
             </div>
           </div>
         </div>
@@ -315,22 +315,17 @@ export default function Home() {
             <div className="absolute inset-0 opacity-10 mix-blend-screen" style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/stardust.png')" }}></div>
 
             <div className="max-w-lg relative z-10">
-              <h2 className="text-4xl font-bold text-white mb-8 tracking-tight">Designed for Enterprise Security</h2>
-              <ul className="space-y-6">
-                <li className="flex items-start">
-                  <Shield className="w-8 h-8 text-[#2ea043] mr-4 flex-shrink-0 drop-shadow-[0_0_10px_rgba(46,160,67,0.5)] mt-1" />
-                  <div>
-                    <strong className="text-white text-lg block mb-1">Zero Retention.</strong>
-                    <p className="text-[#8b949e] text-base leading-relaxed">Your codebase is parsed in-memory and embedded securely. Code is never utilized for LLM training or retained beyond your session.</p>
-                  </div>
-                </li>
-                <li className="flex items-start">
-                  <Globe className="w-8 h-8 text-[#58a6ff] mr-4 flex-shrink-0 drop-shadow-[0_0_10px_rgba(88,166,255,0.5)] mt-1" />
-                  <div>
-                    <strong className="text-white text-lg block mb-1">Isolated Execution.</strong>
-                    <p className="text-[#8b949e] text-base leading-relaxed">Each repository is sandboxed. You operate in an isolated vector space, ensuring zero cross-contamination between organizational projects.</p>
-                  </div>
-                </li>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2ea043]/10 border border-[#2ea043]/30 text-xs font-semibold text-[#2ea043] mb-6">
+                 <Shield size={14} /> Safe & Ephemeral
+              </div>
+              <h3 className="text-3xl md:text-4xl font-bold text-white mb-6 tracking-tight">Optimized Repository Parsing</h3>
+              <p className="text-[#8b949e] mb-6 text-lg leading-relaxed font-light">
+                Your code isn't left lying around. We utilize an ephemeral cloning pipeline that parses ASTs, saves structural data to MongoDB, embeds logic into Qdrant, and immediately destroys the physical clone.
+              </p>
+              <ul className="space-y-4">
+                <li className="flex items-center gap-3 text-[#c9d1d9]"><Shield className="text-[#2ea043] w-5 h-5 flex-shrink-0" /> <span className="text-sm">No persistent raw code on server disk</span></li>
+                <li className="flex items-center gap-3 text-[#c9d1d9]"><Database className="text-[#58a6ff] w-5 h-5 flex-shrink-0" /> <span className="text-sm">Highly efficient MongoDB & Qdrant integration</span></li>
+                <li className="flex items-center gap-3 text-[#c9d1d9]"><Globe className="text-[#a371f7] w-5 h-5 flex-shrink-0" /> <span className="text-sm">Supports JS, TS, HTML, and CSS environments</span></li>
               </ul>
             </div>
 
