@@ -17,6 +17,9 @@ import { errorHandler } from "./middlewares/error.middleware.js";
 
 const app = express();
 
+// ✅ Trust proxy (Render runs behind a reverse proxy)
+app.set("trust proxy", 1);
+
 // ✅ CORS FIX
 app.use(
   cors({

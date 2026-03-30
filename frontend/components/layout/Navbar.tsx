@@ -38,6 +38,8 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       await api.post("/auth/logout");
+      // ✅ Also clear the frontend-side token cookie
+      document.cookie = "token=; path=/; max-age=0; SameSite=Lax; Secure";
       setIsAuthenticated(false);
       toast.success("Logged out successfully");
       router.push("/login");

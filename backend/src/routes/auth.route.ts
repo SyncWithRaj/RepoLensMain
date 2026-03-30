@@ -24,16 +24,17 @@ router.get(
       { expiresIn: "7d" }
     );
 
-    // ✅ PRODUCTION COOKIE FIX
+    // ✅ Set cookie on backend domain (for direct API calls)
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,          // ❗ MUST for HTTPS
-      sameSite: "None",      // ❗ MUST for cross-origin
+      secure: true,
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // redirect to frontend
-    res.redirect("https://repolens-workspace.vercel.app/dashboard");
+    // ✅ Also pass token via URL so frontend can set its own cookie
+    // This is the reliable fix for cross-origin cookie issues
+    res.redirect(`https://repolens-workspace.vercel.app/auth/callback?token=${token}`);
   }
 );
 
@@ -50,7 +51,7 @@ router.post("/logout", (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
     secure: true,
-    sameSite: "None",
+    sameSite: "none",
   });
 
   res.json({
