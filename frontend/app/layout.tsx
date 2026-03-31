@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RepoLens - GitHub themed code AI",
+  title: "RepoLens - AI powered code assistant",
   description: "Chat with your codebase intelligently.",
 };
 
