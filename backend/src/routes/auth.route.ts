@@ -34,7 +34,7 @@ router.get(
 
     // ✅ Also pass token via URL so frontend can set its own cookie
     // This is the reliable fix for cross-origin cookie issues
-    res.redirect(`https://repolens-workspace.vercel.app/auth/callback?token=${token}`);
+    res.redirect(`http://localhost:3000/auth/callback?token=${token}`);
   }
 );
 

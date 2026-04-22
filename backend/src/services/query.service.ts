@@ -22,18 +22,12 @@ export const askQuestion = async (repoId: string, question: string, history: any
         entities.map((e: any) => [e._id.toString(), e])
     );
 
-    const originalRepoIds = [...new Set(entities.map((e: any) => e.repoId.toString()))];
-    const originalRepos = await Repository.find({ _id: { $in: originalRepoIds } });
-    const originalRepoMap = new Map(originalRepos.map(r => [r._id.toString(), r]));
-
     const context = entityIds.map((id: string, index: number) => {
 
         const entity = entityMap.get(id);
         if (!entity) return null;
-        
-        const originalRepo = originalRepoMap.get(entity.repoId.toString());
-        const baseLocalPath = originalRepo ? originalRepo.localPath : repo.localPath;
-        const relativePath = path.relative(baseLocalPath, entity.filePath).replace(/\\/g, '/');
+
+        const relativePath = path.relative(repo.localPath, entity.filePath).replace(/\\/g, '/');
 
         return {
             filePath: relativePath,

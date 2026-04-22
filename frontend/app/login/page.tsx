@@ -9,7 +9,7 @@ export default function LoginPage() {
     const router = useRouter();
 
     const loginWithGithub = () => {
-        window.location.href = "https://repolens-murfai.onrender.com/api/v1/auth/github";
+        window.location.href = "http://localhost:5000/api/v1/auth/github";
     };
 
     useEffect(() => {

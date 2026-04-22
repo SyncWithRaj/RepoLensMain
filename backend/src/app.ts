@@ -23,7 +23,7 @@ app.set("trust proxy", 1);
 // ✅ CORS FIX
 app.use(
   cors({
-    origin: "https://repolens-workspace.vercel.app",
+    origin: "http://localhost:3000",
     credentials: true,
   })
 );
