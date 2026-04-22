@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addRepository, deleteRepository, getRepositoryById, getUserRepositories, scanRepository } from "../controllers/repo.controller.js";
+import { addRepository, deleteRepository, getRepositoryById, getUserRepositories, scanRepository, processRepoController, jobStatusController } from "../controllers/repo.controller.js";
 import { protect } from "../middlewares/auth.middleware.js";
 import { parseRepoController } from "../controllers/parser.controller.js";
 import { getRepositoryEntities } from "../controllers/codeEntity.controller.js";
@@ -10,6 +10,8 @@ import { getRepositoryGraph } from "../controllers/graph.controller.js";
 const router = Router();
 
 router.post("/", protect, addRepository)
+router.post("/process", protect, processRepoController);
+router.get("/jobs/:id/status", protect, jobStatusController);
 router.get("/", protect, getUserRepositories)
 router.get("/:id", protect, getRepositoryById)
 router.delete("/:id", protect, deleteRepository)

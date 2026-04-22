@@ -33,9 +33,9 @@ export const searchVectors = async (repoId: string, query: string) => {
     {
       must: [
         {
-          key: "metadata.fingerprint",
+          key: "metadata.repoId",
           match: {
-            value: repo?.fingerprint
+            value: repoId
           }
         }
       ]

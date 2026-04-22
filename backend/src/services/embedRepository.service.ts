@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import { CodeEntity } from "../models/codeEntity.model.js";
 import { v4 as uuidv4 } from "uuid";
 import { Repository } from "../models/repo.model.js";
+import { VectorInitService } from "./vectorInit.service.js";
 
 const COLLECTION = "repo_entities";
 
@@ -18,6 +19,10 @@ const embeddings = new GoogleGenerativeAIEmbeddings({
 });
 
 export async function embedRepository(repoId: string) {
+
+  // Ensure the Qdrant collection and indexes exist before interacting
+  const vectorInit = new VectorInitService();
+  await vectorInit.initVectorCollection();
 
   const repo = await Repository.findById(repoId);
 
@@ -83,6 +88,20 @@ ${entity?.content || ""}
 
     const vector = await embeddings.embedQuery(text);
 
+    // Dynamic language extraction based on extension
+    const ext = entity.filePath.split('.').pop()?.toLowerCase() || '';
+    const languageMap: Record<string, string> = {
+      'ts': 'typescript',
+      'tsx': 'typescript',
+      'js': 'javascript',
+      'jsx': 'javascript',
+      'html': 'html',
+      'css': 'css',
+      'json': 'json',
+      'md': 'markdown'
+    };
+    const language = languageMap[ext] || 'unknown';
+
     points.push({
       id: uuidv4(), // UUID required by Qdrant
       vector,
@@ -90,8 +109,10 @@ ${entity?.content || ""}
         pageContent: entity.content || entity.name,
         metadata: {
           mongoId: entity._id.toString(),
+          repoId: repoId.toString(),
           fingerprint: repo.fingerprint,
           filePath: entity.filePath,
+          language: language,
           startLine: entity.startLine,
           endLine: entity.endLine,
         },
@@ -99,12 +120,18 @@ ${entity?.content || ""}
     });
   }
 
-  console.log("Uploading vectors to Qdrant...");
+  console.log(`Uploading ${points.length} vectors to Qdrant in chunks...`);
 
-  await qdrant.upsert(COLLECTION, {
-    wait: true,
-    points,
-  });
+  const CHUNK_SIZE = 200;
+  for (let i = 0; i < points.length; i += CHUNK_SIZE) {
+    const chunk = points.slice(i, i + CHUNK_SIZE);
+    console.log(`Pushing chunk ${Math.floor(i / CHUNK_SIZE) + 1} of ${Math.ceil(points.length / CHUNK_SIZE)}`);
+    
+    await qdrant.upsert(COLLECTION, {
+      wait: true,
+      points: chunk,
+    });
+  }
 
   console.log(`Embedding completed: ${total}/${total} stored in Qdrant\n`);
 

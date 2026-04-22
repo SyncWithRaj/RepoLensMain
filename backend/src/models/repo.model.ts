@@ -8,6 +8,7 @@ export interface IRepository extends Document {
     defaultBranch: string;
     localPath: string;
     status: "cloning" | "cloned" | "indexing" | "indexed" | "failed";
+    jobId?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -38,6 +39,9 @@ const repoSchema = new Schema<IRepository>({
         type: String,
         enum: ["cloning", "cloned", "indexing", "indexed", "failed"],
         default: "cloning",
+    },
+    jobId: {
+        type: String,
     },
     commitHash: {
         type: String,

@@ -21,18 +21,17 @@ export class VectorInitService {
         )
 
         if (exists) {
-            // Ensure payload index exists even if collection already exists
+            // Ensure payload indexes exist even if collection already exists
             try {
-                await this.client.createPayloadIndex(COLLECTION, {
-                    field_name: "metadata.fingerprint",
-                    field_schema: "keyword",
-                    wait: true
-                });
+                await this.client.createPayloadIndex(COLLECTION, { field_name: "metadata.fingerprint", field_schema: "keyword", wait: true });
+                await this.client.createPayloadIndex(COLLECTION, { field_name: "metadata.repoId", field_schema: "keyword", wait: true });
+                await this.client.createPayloadIndex(COLLECTION, { field_name: "metadata.filePath", field_schema: "keyword", wait: true });
+                await this.client.createPayloadIndex(COLLECTION, { field_name: "metadata.language", field_schema: "keyword", wait: true });
             } catch (e: any) {
                 console.log("Index creation skipped/failed:", e.message);
             }
             return {
-                message: "Collection already exists, ensured payload index is present"
+                message: "Collection already exists, ensured payload indexes are present"
             }
         }
 
@@ -40,14 +39,18 @@ export class VectorInitService {
             vectors: {
                 size: 3072,
                 distance: "Cosine"
+            },
+            hnsw_config: {
+                m: 16,
+                ef_construct: 100,
+                full_scan_threshold: 10000,
             }
         });
 
-        await this.client.createPayloadIndex(COLLECTION, {
-            field_name: "metadata.fingerprint",
-            field_schema: "keyword",
-            wait: true
-        });
+        await this.client.createPayloadIndex(COLLECTION, { field_name: "metadata.fingerprint", field_schema: "keyword", wait: true });
+        await this.client.createPayloadIndex(COLLECTION, { field_name: "metadata.repoId", field_schema: "keyword", wait: true });
+        await this.client.createPayloadIndex(COLLECTION, { field_name: "metadata.filePath", field_schema: "keyword", wait: true });
+        await this.client.createPayloadIndex(COLLECTION, { field_name: "metadata.language", field_schema: "keyword", wait: true });
 
         return {
             message: "repo_entities collection and payload index created"

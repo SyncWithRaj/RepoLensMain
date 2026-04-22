@@ -6,6 +6,56 @@ import { GitBranch, Box, Loader2, Play, Trash2, Github, MessageSquare, Plus, Inf
 import api from "@/lib/axios";
 import toast from "react-hot-toast";
 
+function RepoProgressTracker({ jobId, onComplete }: { jobId: string, onComplete: () => void }) {
+    const [status, setStatus] = useState("connecting...");
+    const [progress, setProgress] = useState(0);
+
+    useEffect(() => {
+        const eventSource = new EventSource(
+            `http://localhost:5000/api/v1/repos/jobs/${jobId}/status`,
+            { withCredentials: true }
+        );
+
+        eventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                setStatus(data.status);
+                if (data.progress !== undefined) setProgress(Number(data.progress));
+
+                if (data.status === "completed" || data.status === "failed") {
+                    eventSource.close();
+                    if (data.status === "completed") {
+                        setTimeout(() => onComplete(), 1000);
+                    }
+                }
+            } catch (e) {}
+        };
+
+        eventSource.onerror = () => {
+            eventSource.close();
+        };
+
+        return () => eventSource.close();
+    }, [jobId, onComplete]);
+
+    return (
+        <div className="w-full mt-4 md:mt-0 md:ml-12 md:max-w-md space-y-2">
+            <div className="flex justify-between text-xs text-[#8b949e] font-mono font-medium tracking-wide">
+                <span>{status.toUpperCase()}</span>
+                <span className="text-[#58a6ff]">{progress}%</span>
+            </div>
+            <div className="w-full bg-[#0d1117] rounded-full h-2 overflow-hidden border border-[#30363d]/80 shadow-inner">
+                <div
+                    className="bg-gradient-to-r from-[#1f6feb] to-[#58a6ff] h-2 rounded-full transition-all duration-500 ease-out relative"
+                    style={{ width: `${progress}%` }}
+                >
+                    <div className="absolute inset-0 bg-white/20 w-full h-full animate-[shimmer_2s_infinite]"></div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function Dashboard() {
     const router = useRouter();
 
@@ -13,23 +63,12 @@ export default function Dashboard() {
     const [githubUrl, setGithubUrl] = useState("");
     const [loading, setLoading] = useState(false);
     const [embeddingRepo, setEmbeddingRepo] = useState<string | null>(null);
-    const [indexingRepo, setIndexingRepo] = useState<string | null>(null);
-    const pollingRef = useRef<NodeJS.Timeout | null>(null);
-
 
     const fetchRepos = useCallback(async () => {
         try {
             const res = await api.get("/repos");
             const fetchedRepos = res.data.repos || [];
             setRepos(fetchedRepos);
-
-            // Stop polling if no repos are in indexing state
-            const hasIndexing = fetchedRepos.some((r: any) => r.status === "indexing");
-            if (!hasIndexing && pollingRef.current) {
-                clearInterval(pollingRef.current);
-                pollingRef.current = null;
-                setIndexingRepo(null);
-            }
         } catch (err) {
             console.error("Fetch repos error:", err);
             setRepos([]);
@@ -46,49 +85,22 @@ export default function Dashboard() {
             }
         };
         checkAuth();
+    }, [fetchRepos]);
 
-        return () => {
-            if (pollingRef.current) clearInterval(pollingRef.current);
-        };
-    }, []);
-
-    const cloneRepo = async () => {
+    const processRepo = async () => {
         if (!githubUrl) return;
         try {
             setLoading(true);
-            toast.loading("Cloning repository...");
-            await api.post("/repos", { githubUrl });
+            toast.loading("Analyzing repository...");
+            await api.post("/repos/process", { githubUrl });
             setGithubUrl("");
-            toast.success("Repository cloned successfully!");
+            toast.success("Analysis started in the background!");
             fetchRepos();
-        } catch (err) {
-            console.error("Clone repo error:", err);
-            toast.error("Failed to clone repository. Check the URL and try again.");
+        } catch (err: any) {
+            console.error("Process repo error:", err);
+            toast.error(err.response?.data?.message || "Failed to start analysis. Check the URL and try again.");
         }
         setLoading(false);
-    };
-
-    const indexRepo = async (repoId: string) => {
-        try {
-            // Optimistic update: immediately set status to indexing
-            setIndexingRepo(repoId);
-            setRepos(prev => prev.map(r =>
-                r._id === repoId ? { ...r, status: "indexing" } : r
-            ));
-            toast.loading("Indexing repository architecture...");
-
-            // Start polling for status updates
-            if (pollingRef.current) clearInterval(pollingRef.current);
-            pollingRef.current = setInterval(fetchRepos, 3000);
-
-            await api.post(`/repos/${repoId}/parse`);
-            toast.success("Repository indexed successfully!");
-            fetchRepos();
-        } catch (err) {
-            console.error("Index repo error:", err);
-            toast.error("Indexing failed. Please try again.");
-            fetchRepos();
-        }
     };
 
     const embedRepo = async (repoId: string) => {
@@ -139,7 +151,7 @@ export default function Dashboard() {
                 
                 <h2 className="text-lg font-semibold text-white mb-4 relative z-10 flex items-center gap-2">
                     <Plus size={18} className="text-[#2ea043]" />
-                    Clone a new repository
+                    Index a new repository
                 </h2>
                 <div className="flex flex-col sm:flex-row gap-4 relative z-10">
                     <div className="relative flex-grow">
@@ -147,22 +159,22 @@ export default function Dashboard() {
                           <Github className="h-5 w-5 text-[#8b949e]" />
                        </div>
                        <input
-                           type="text"
-                           placeholder="https://github.com/owner/repo.git"
+                           type="url"
+                           placeholder="https://github.com/owner/repo"
                            value={githubUrl}
                            onChange={(e) => setGithubUrl(e.target.value)}
                            className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-[#010409]/80 backdrop-blur-sm border border-[#30363d] text-white focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] transition-all shadow-inner placeholder-[#484f58]"
                        />
                     </div>
                     <button
-                        onClick={cloneRepo}
+                        onClick={processRepo}
                         disabled={loading || !githubUrl}
                         className="group/btn relative cursor-pointer text-white font-semibold px-8 py-3.5 rounded-xl transition-all duration-300 active:scale-[0.98] border border-[rgba(255,255,255,0.1)] whitespace-nowrap shadow-[0_0_20px_rgba(35,134,54,0.3)] hover:shadow-[0_0_30px_rgba(46,160,67,0.5)] flex items-center justify-center min-w-[180px] overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-[#238636] to-[#2ea043] transition-opacity duration-300 group-hover/btn:opacity-90"></div>
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[150%] group-hover/btn:translate-x-[150%] transition-transform duration-1000 ease-in-out"></div>
                         <span className="relative z-10 flex items-center gap-2">
-                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Clone Repository"}
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Analyze Codebase"}
                         </span>
                     </button>
                 </div>
@@ -207,54 +219,35 @@ export default function Dashboard() {
                               {/* Hover glow line */}
                               <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#58a6ff] to-[#a371f7] opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:shadow-[0_0_15px_rgba(88,166,255,0.8)]"></div>
                               
-                              <div className="flex items-start gap-4">
-                                  <div className="w-10 h-10 rounded-lg bg-[#21262d] border border-[#30363d] flex items-center justify-center shadow-inner group-hover:border-[#58a6ff]/30 transition-colors">
-                                     <GitBranch className="w-5 h-5 text-[#8b949e] group-hover:text-[#58a6ff] transition-colors" />
-                                  </div>
-                                  <div>
-                                      <h3 className="text-xl font-bold text-white group-hover:text-[#58a6ff] transition-colors cursor-pointer flex items-center gap-2">
-                                          {repo.name}
-                                      </h3>
-                                      <div className="flex items-center gap-4 mt-2 text-xs text-[#8b949e] font-mono">
-                                          <span className="flex items-center gap-2 font-medium bg-[#161b22] px-2.5 py-1 rounded-md border border-[#30363d]">
-                                              <span className={`w-2 h-2 rounded-full ${
-                                                  repo.status === "cloned" ? "bg-gray-400" :
-                                                  repo.status === "indexing" ? "bg-[#e3b341] animate-pulse shadow-[0_0_8px_rgba(227,179,65,0.6)]" :
-                                                  repo.status === "indexed" ? "bg-[#2ea043] shadow-[0_0_8px_rgba(46,160,67,0.6)]" : "bg-blue-400"
-                                              }`}></span>
-                                              {repo.status.toUpperCase()}
-                                          </span>
+                              <div className="flex items-center flex-grow flex-wrap md:flex-nowrap">
+                                  <div className="flex items-start gap-4">
+                                      <div className="w-10 h-10 rounded-lg bg-[#21262d] border border-[#30363d] flex items-center justify-center shadow-inner group-hover:border-[#58a6ff]/30 transition-colors shrink-0">
+                                         <GitBranch className="w-5 h-5 text-[#8b949e] group-hover:text-[#58a6ff] transition-colors" />
+                                      </div>
+                                      <div>
+                                          <h3 className="text-xl font-bold text-white group-hover:text-[#58a6ff] transition-colors cursor-pointer flex items-center gap-2">
+                                              {repo.name}
+                                          </h3>
+                                          <div className="flex items-center gap-4 mt-2 text-xs text-[#8b949e] font-mono">
+                                              <span className="flex items-center gap-2 font-medium bg-[#161b22] px-2.5 py-1 rounded-md border border-[#30363d]">
+                                                  <span className={`w-2 h-2 rounded-full ${
+                                                      repo.status === "failed" ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]" :
+                                                      repo.status === "cloning" || repo.status === "indexing" ? "bg-[#e3b341] animate-pulse shadow-[0_0_8px_rgba(227,179,65,0.6)]" :
+                                                      repo.status === "indexed" ? "bg-[#2ea043] shadow-[0_0_8px_rgba(46,160,67,0.6)]" : "bg-blue-400"
+                                                  }`}></span>
+                                                  {repo.status.toUpperCase()}
+                                              </span>
+                                          </div>
                                       </div>
                                   </div>
+
+                                  {/* Inject Live Progress Bar Here */}
+                                  {repo.jobId && repo.status !== "indexed" && repo.status !== "failed" && (
+                                      <RepoProgressTracker jobId={repo.jobId} onComplete={fetchRepos} />
+                                  )}
                               </div>
 
-                              <div className="flex flex-wrap gap-3 items-center">
-                                  {repo.status === "cloned" && (
-                                      <button
-                                          onClick={() => indexRepo(repo._id)}
-                                          className="cursor-pointer flex items-center gap-2 text-sm bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-[#c9d1d9] hover:text-white font-medium px-5 py-2.5 rounded-xl transition-all duration-300 active:scale-95 shadow-sm"
-                                      >
-                                          <Play size={16} />
-                                          Index Architecture
-                                      </button>
-                                  )}
-
-                                  {repo.status === "cloning" && (
-                                      <span className="flex items-center gap-2 text-sm text-[#e3b341] font-medium px-4 py-2 bg-[#e3b341]/10 rounded-xl border border-[#e3b341]/20">
-                                          <Loader2 className="w-4 h-4 animate-spin" />
-                                          Cloning...
-                                      </span>
-                                  )}
-
-                                  {repo.status === "indexing" && (
-                                      <button
-                                          disabled
-                                          className="flex items-center gap-2 text-sm text-[#e3b341] font-medium px-5 py-2.5 bg-[#e3b341]/10 rounded-xl border border-[#e3b341]/20 cursor-not-allowed opacity-80"
-                                      >
-                                          <Loader2 className="w-4 h-4 animate-spin" />
-                                          Indexing...
-                                      </button>
-                                  )}
+                              <div className="flex flex-wrap gap-3 items-center mt-4 md:mt-0 shrink-0">
 
                                   {repo.status === "indexed" && (
                                       <>
@@ -280,9 +273,10 @@ export default function Dashboard() {
                                       </>
                                   )}
 
+                                  {/* Disable delete while processing */}
                                   <button
                                       onClick={() => deleteRepo(repo._id)}
-                                      disabled={repo.status === "indexing"}
+                                      disabled={repo.status === "cloning" || repo.status === "indexing"}
                                       className="cursor-pointer flex justify-center items-center w-10 h-10 bg-[#21262d] hover:bg-[#da3633] text-[#8b949e] hover:text-white border border-[#30363d] hover:border-transparent rounded-xl transition-all duration-300 active:scale-90 shadow-sm group/btn ml-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#21262d] disabled:hover:text-[#8b949e]"
                                       title="Delete Repository"
                                   >

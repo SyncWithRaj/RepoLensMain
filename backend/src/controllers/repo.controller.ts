@@ -11,6 +11,8 @@ import { FileContent } from "../models/fileContent.model.js";
 import ChatHistory from "../models/chatHistory.model.js";
 import { QdrantClient } from "@qdrant/js-client-rest";
 import { getTempRepoPath } from "../utils/cleanup.util.js";
+import { repoQueue } from "../queue/jobQueue.js";
+import { QueueEvents } from "bullmq";
 
 // Prevent Git from trying to prompt for credentials in server environments (Render, Docker, etc.)
 // GIT_TERMINAL_PROMPT=0 disables interactive prompts without injecting fake credentials
@@ -273,3 +275,111 @@ export const scanRepository = async (req: Request, res: Response) => {
         return res.status(500).json({ message: "Scan Failed" })
     }
 }
+
+export const processRepoController = async (req: Request, res: Response) => {
+    try {
+        const { githubUrl } = req.body;
+        const user = (req as any).user;
+
+        if (!user) {
+            return res.status(401).json({ message: "Not authorized" });
+        }
+
+        if (!githubUrl || !githubUrl.startsWith("https://github.com/")) {
+            return res.status(400).json({ message: "Invalid GitHub URL" });
+        }
+
+        const repoName = githubUrl.split("/").pop()?.replace(".git", "");
+        if (!repoName) {
+            return res.status(400).json({ message: "Invalid GitHub URL" });
+        }
+
+        const repo = new Repository({
+            user: user._id,
+            name: repoName,
+            githubUrl,
+            status: "cloning",
+        });
+        
+        const repoPath = getTempRepoPath(user._id.toString(), repo._id.toString());
+        repo.localPath = repoPath;
+
+        await repo.save();
+
+        const job = await repoQueue.add("process-repo", {
+            repoUrl: githubUrl,
+            userId: user._id.toString(),
+            repoId: repo._id.toString(),
+        });
+
+        repo.jobId = job.id;
+        await repo.save();
+
+        return res.status(202).json({
+            success: true,
+            message: "Job accepted",
+            jobId: job.id,
+            repoId: repo._id.toString(),
+        });
+
+    } catch (error) {
+        console.error("Queue add failed", error);
+        return res.status(500).json({ message: "Failed to queue repository" });
+    }
+};
+
+export const jobStatusController = async (req: Request, res: Response) => {
+    const { id: jobId } = req.params;
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    // Send an initial heartbeat
+    res.write(`data: ${JSON.stringify({ status: "connected", progress: 0 })}\n\n`);
+
+    const queueEvents = new QueueEvents("repo-processing-queue", {
+        connection: {
+            host: process.env.REDIS_HOST || "localhost",
+            port: parseInt(process.env.REDIS_PORT || "6379"),
+            // Or just pass the URL or IORedis instance
+        }
+    });
+
+    const onProgress = (args: { jobId: string; data: string | number }) => {
+        if (args.jobId === jobId) {
+            res.write(`data: ${JSON.stringify({ status: "processing", progress: args.data })}\n\n`);
+        }
+    };
+
+    const onCompleted = (args: { jobId: string; returnvalue: string }) => {
+        if (args.jobId === jobId) {
+            res.write(`data: ${JSON.stringify({ status: "completed", progress: 100 })}\n\n`);
+            cleanup();
+            res.end();
+        }
+    };
+
+    const onFailed = (args: { jobId: string; failedReason: string }) => {
+        if (args.jobId === jobId) {
+            res.write(`data: ${JSON.stringify({ status: "failed", error: args.failedReason })}\n\n`);
+            cleanup();
+            res.end();
+        }
+    };
+
+    queueEvents.on("progress", onProgress);
+    queueEvents.on("completed", onCompleted);
+    queueEvents.on("failed", onFailed);
+
+    req.on("close", () => {
+        cleanup();
+    });
+
+    function cleanup() {
+        queueEvents.off("progress", onProgress);
+        queueEvents.off("completed", onCompleted);
+        queueEvents.off("failed", onFailed);
+        queueEvents.close();
+    }
+};
