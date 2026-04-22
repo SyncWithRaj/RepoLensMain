@@ -38,6 +38,44 @@ export const repoWorker = new Worker<JobData, JobResult, string>(
                 safeUrl = safeUrl.replace('.git', '');
             }
 
+            // === GitHub App Private Repo Support ===
+            let cloneUrl = safeUrl;
+            const appId = process.env.GITHUB_APP_ID;
+            let privateKey = process.env.GITHUB_APP_PRIVATE_KEY;
+
+            if (appId && privateKey) {
+                console.log(`[Worker] GitHub App Config detected. Attempting to negotiate Installation Token for Private Clone...`);
+                
+                // Handle newlines in env variables depending on how they were pasted
+                privateKey = privateKey.replace(/\\n/g, '\n');
+
+                try {
+                    const { App } = await import("@octokit/app");
+                    const app = new App({ appId, privateKey });
+
+                    const parts = safeUrl.split("/");
+                    const owner = parts[parts.length - 2];
+                    const repoName = parts[parts.length - 1];
+
+                    // Find if the user installed the app on this specific repo
+                    const { data: installation } = await app.octokit.request("GET /repos/{owner}/{repo}/installation", {
+                        owner,
+                        repo: repoName,
+                    });
+
+                    // Generate a short-lived token for git clone
+                    const { data: { token } } = await app.octokit.request("POST /app/installations/{installation_id}/access_tokens", {
+                        installation_id: installation.id
+                    });
+
+                    cloneUrl = `https://x-access-token:${token}@github.com/${owner}/${repoName}.git`;
+                    console.log(`[Worker] ✅ Installation Token successfully generated for ${owner}/${repoName}. Securely cloning private repository!`);
+                } catch (e: any) {
+                    console.log(`[Worker] ⚠️ Could not negotiate GitHub App token (Maybe app is not installed on this repo?): ${e.message}`);
+                    console.log(`[Worker] Falling back to public anonymous clone attempt...`);
+                }
+            }
+
             // Create temp directory explicitly
             if (!fs.existsSync(repoPath)) {
                 fs.mkdirSync(repoPath, { recursive: true });
@@ -45,7 +83,7 @@ export const repoWorker = new Worker<JobData, JobResult, string>(
 
             console.log(`[Worker] Cloning ${safeUrl} into ${repoPath}`);
             const git = simpleGit();
-            await git.clone(safeUrl, repoPath, [
+            await git.clone(cloneUrl, repoPath, [
                 "--depth", "1",
                 "-c", "credential.helper=",
             ]);

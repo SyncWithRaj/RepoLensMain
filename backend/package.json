@@ -17,6 +17,7 @@
     "@langchain/google-genai": "^2.1.24",
     "@langchain/qdrant": "^1.0.1",
     "@qdrant/js-client-rest": "^1.17.0",
+    "@octokit/app": "^14.0.2",
     "assemblyai": "^4.28.0",
     "axios": "^1.13.6",
     "bullmq": "^5.7.8",
