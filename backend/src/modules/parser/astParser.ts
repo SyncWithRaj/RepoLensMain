@@ -117,9 +117,10 @@ export async function parseRepository(
     const seen = new Set<string>();
 
     for (const sourceFile of project.getSourceFiles()) {
-        const metadata = extractFileMetadata(repoId, sourceFile);
-        fileMetadata.push(metadata);
-        const currentFilePath = sourceFile.getFilePath();
+        try {
+            const metadata = extractFileMetadata(repoId, sourceFile);
+            fileMetadata.push(metadata);
+            const currentFilePath = sourceFile.getFilePath();
 
         sourceFile.forEachDescendant((node) => {
 
@@ -643,6 +644,9 @@ export async function parseRepository(
             //     });
             // }
         })
+        } catch (err: any) {
+            console.error(`[Worker] Failed to parse AST for file ${sourceFile.getFilePath()}:`, err?.message || err);
+        }
     }
     return {
         entities,

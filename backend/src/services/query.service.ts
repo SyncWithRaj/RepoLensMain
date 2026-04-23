@@ -66,6 +66,7 @@ Instructions:
   - Mention which file the code belongs to.
   - Mention the line numbers when relevant.
   - If the code relates to another component, explain that relationship.
+  - **IMPACT ANALYSIS**: If the user asks about the impact, blast radius, consequences, or what breaks if a specific function or file is modified, you MUST include this exact tag at the very end of your response: <blast_radius file="exactFilePath" name="exactFunctionName" />. If the user asks about a file generally, you can leave name empty: <blast_radius file="exactFilePath" name="" />. This tag allows the frontend to visualize the impact.
   - Please use the exact response format below.
 
 Response format (ONLY if the question is related to the context):

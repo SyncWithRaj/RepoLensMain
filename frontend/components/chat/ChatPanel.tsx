@@ -4,8 +4,9 @@ import { useEditor } from "@/context/EditorContext";
 import api from "@/lib/axios";
 import { getLanguage } from "@/utils/getLanguage";
 import { useRef, useEffect, useState } from "react";
-import { Send, Bot, User, Code2, Mic, Loader2, Phone, MessageSquare, PhoneOff, Trash2 } from "lucide-react";
+import { Send, Bot, User, Code2, Mic, Loader2, Phone, MessageSquare, PhoneOff, Trash2, Flame } from "lucide-react";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 // Typewriter hook for streaming effect
 function useTypewriter(text: string, isActive: boolean, speed: number = 12) {
@@ -65,6 +66,7 @@ export default function ChatPanel({
   onStreamComplete,
   onDeleteChat,
 }: any) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"chat" | "call">("chat");
   const [callState, setCallState] = useState<"idle" | "listening" | "processing" | "speaking">("idle");
   const callStateRef = useRef<string>("idle");
@@ -125,6 +127,11 @@ export default function ChatPanel({
     } catch (err) {
       console.error("Open reference error:", err);
     }
+  };
+
+  const handleBlastRadiusClick = (file: string, name: string) => {
+    const nodeId = name ? `${file}::${name}` : file;
+    router.push(`/graph/${repoId}?blastRadius=${encodeURIComponent(nodeId)}`);
   };
 
   const stopSilenceDetection = () => {
@@ -445,12 +452,34 @@ export default function ChatPanel({
                     {msg.role === "user" && <User size={14} className="text-[#8b949e]" />}
                   </div>
                   <div className="p-4 text-[13px] sm:text-sm text-[#c9d1d9] whitespace-pre-wrap leading-relaxed font-sans">
-                    {msg.role === "assistant" ? (
-                      <AssistantMessage
-                        content={msg.content}
-                        shouldStream={isStreamingThis}
-                      />
-                    ) : (
+                    {msg.role === "assistant" ? (() => {
+                      let cleanContent = msg.content;
+                      let blastRadiusInfo = null;
+                      const blastRegex = /<blast_radius\s+file="([^"]+)"\s+name="([^"]*)"\s*\/>/;
+                      const match = cleanContent.match(blastRegex);
+                      
+                      if (match) {
+                        cleanContent = cleanContent.replace(blastRegex, "").trim();
+                        blastRadiusInfo = { file: match[1], name: match[2] };
+                      }
+                      
+                      return (
+                        <div className="flex flex-col gap-3">
+                          <AssistantMessage
+                            content={cleanContent}
+                            shouldStream={isStreamingThis}
+                          />
+                          {blastRadiusInfo && (
+                            <button 
+                              onClick={() => handleBlastRadiusClick(blastRadiusInfo.file, blastRadiusInfo.name)}
+                              className="cursor-pointer mt-2 self-start py-2 px-4 flex items-center justify-center gap-2 bg-[#ff5858]/10 hover:bg-[#ff5858]/20 text-[#ff5858] border border-[#ff5858]/30 hover:border-[#ff5858] rounded-lg text-xs font-bold uppercase tracking-wider transition-all"
+                            >
+                              <Flame size={16} /> Visualize Blast Radius in Graph
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })() : (
                       msg.content
                     )}
                   </div>

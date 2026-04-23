@@ -4,19 +4,43 @@ import { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useEditor } from "@/context/EditorContext";
 import api from "@/lib/axios";
+import { Flame, XCircle } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 // Dynamically import ForceGraph2D (avoids SSR window undef errors)
 const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), { ssr: false });
 
 export default function GraphView({ repoId }: { repoId: string }) {
-  const [graphData, setGraphData] = useState({ nodes: [], links: [] });
+  const searchParams = useSearchParams();
+  const blastRadiusParam = searchParams.get("blastRadius");
+  
+  const [graphData, setGraphData] = useState<{nodes: any[], links: any[]}>({ nodes: [], links: [] });
   const [loading, setLoading] = useState(true);
   const { setEditorState, editorState } = useEditor();
   const containerRef = useRef<HTMLDivElement>(null);
   const fgRef = useRef<any>(null);
   const [hoverNode, setHoverNode] = useState<any | null>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isHoveringTooltipRef = useRef(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set());
+  const [blastRadius, setBlastRadius] = useState<{ targetId: string, affectedNodeIds: Set<string> } | null>(null);
+  const hasAutoTriggeredRef = useRef(false);
+
+  const handleNodeHover = useCallback((node: any) => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    
+    if (node) {
+      setHoverNode(node);
+    } else {
+      // Delay closing so user can move mouse into tooltip
+      hoverTimeoutRef.current = setTimeout(() => {
+        if (!isHoveringTooltipRef.current) {
+          setHoverNode(null);
+        }
+      }, 300);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchGraph = async () => {
@@ -85,6 +109,58 @@ export default function GraphView({ repoId }: { repoId: string }) {
     return { nodes, links };
   }, [graphData, collapsedNodes]);
 
+  const triggerBlastRadius = useCallback((targetNode: any) => {
+    const affected = new Set<string>();
+    const queue = [targetNode.id];
+    affected.add(targetNode.id);
+
+    while (queue.length > 0) {
+      const curr = queue.shift()!;
+      // Find nodes that depend on curr (source -> curr)
+      graphData.links.forEach((l: any) => {
+        const s = l.source?.id || l.source;
+        const t = l.target?.id || l.target;
+        if (t === curr && l.label !== "contains" && !affected.has(s)) {
+          affected.add(s);
+          queue.push(s);
+        }
+      });
+    }
+
+    setBlastRadius({ targetId: targetNode.id, affectedNodeIds: affected });
+    setHoverNode(null); // Hide tooltip
+  }, [graphData.links]);
+
+  // Auto-trigger blast radius if query parameter is present
+  useEffect(() => {
+    if (blastRadiusParam && graphData.nodes.length > 0 && !hasAutoTriggeredRef.current) {
+      const targetNode = graphData.nodes.find((n: any) => 
+        n.id === blastRadiusParam || n.id.endsWith(blastRadiusParam)
+      );
+      if (targetNode) {
+        hasAutoTriggeredRef.current = true;
+        
+        // Uncollapse the parent folders so the target and its dependencies are visible
+        setCollapsedNodes(prev => {
+          const newCollapsed = new Set(prev);
+          const pathParts = (targetNode.path || targetNode.id).split("/");
+          pathParts.pop(); 
+          let currentPath = "";
+          for (const part of pathParts) {
+             currentPath = currentPath ? `${currentPath}/${part}` : part;
+             newCollapsed.delete(currentPath);
+          }
+          return newCollapsed;
+        });
+        
+        // Slight delay to let uncollapsing render
+        setTimeout(() => {
+          triggerBlastRadius(targetNode);
+        }, 50);
+      }
+    }
+  }, [blastRadiusParam, graphData.nodes, triggerBlastRadius]);
+
   // Adjust force graph physics to make it cleaner and less clumped
   useEffect(() => {
     if (fgRef.current) {
@@ -152,7 +228,7 @@ export default function GraphView({ repoId }: { repoId: string }) {
   }
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (containerRef.current) {
+    if (containerRef.current && !isHoveringTooltipRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       setMousePos({ 
         x: e.clientX - rect.left, 
@@ -173,10 +249,34 @@ export default function GraphView({ repoId }: { repoId: string }) {
         <p className="text-xs text-[#8b949e]">Click a file to view code</p>
       </div>
 
+      {blastRadius && (
+        <div className="absolute top-4 right-4 z-10 bg-[#ff5858]/10 border border-[#ff5858]/50 px-4 py-2 rounded-lg shadow-[0_0_15px_rgba(255,88,88,0.2)] flex items-center gap-3 backdrop-blur-md animate-fadeInUp">
+          <div className="flex items-center gap-2">
+            <Flame className="text-[#ff5858] animate-pulse" size={18} />
+            <div>
+              <div className="text-[#ff5858] text-sm font-bold tracking-wide">BLAST RADIUS ACTIVE</div>
+              <div className="text-xs text-[#c9d1d9] font-medium">{blastRadius.affectedNodeIds.size - 1} dependent entities affected</div>
+            </div>
+          </div>
+          <button 
+            onClick={() => setBlastRadius(null)}
+            className="p-1.5 ml-2 hover:bg-[#ff5858]/20 rounded-md transition text-[#ff5858] active:scale-95 cursor-pointer"
+            title="Clear Analysis"
+          >
+            <XCircle size={18} />
+          </button>
+        </div>
+      )}
+
       {hoverNode && (
         <div 
-          className="absolute z-50 bg-[#161b22] border border-[var(--color-gh-border)] px-4 py-3 rounded-xl shadow-2xl pointer-events-none transition-opacity duration-150"
+          className="absolute z-50 bg-[#161b22] border border-[var(--color-gh-border)] px-4 py-3 rounded-xl shadow-2xl pointer-events-auto transition-opacity duration-150"
           style={{ left: mousePos.x + 15, top: mousePos.y + 15, minWidth: '220px' }}
+          onMouseEnter={() => { isHoveringTooltipRef.current = true; }}
+          onMouseLeave={() => { 
+            isHoveringTooltipRef.current = false; 
+            setHoverNode(null); 
+          }}
         >
           <div className="font-semibold text-white mb-1 break-all">{hoverNode.name}</div>
           <div className="text-xs text-[#8b949e] mb-2 font-mono break-all pb-2 border-b border-[#30363d]">{hoverNode.id}</div>
@@ -205,6 +305,15 @@ export default function GraphView({ repoId }: { repoId: string }) {
                 
                 <div className="text-[#8b949e] border-t border-[#30363d] pt-1 mt-1 col-span-2">Entities</div>
                 <div className="text-right text-[#c9d1d9] col-span-2">{collapsedNodes.has(hoverNode.id) ? "Hidden (Click to expand)" : "Visible"}</div>
+                
+                <div className="col-span-2 mt-2 pt-2 border-t border-[#30363d]">
+                   <button 
+                     onClick={(e) => { e.stopPropagation(); triggerBlastRadius(hoverNode); }}
+                     className="cursor-pointer w-full py-1.5 flex items-center justify-center gap-2 bg-[#ff5858]/10 hover:bg-[#ff5858]/20 text-[#ff5858] border border-[#ff5858]/30 hover:border-[#ff5858] rounded text-xs font-bold uppercase tracking-wider transition-all"
+                   >
+                     <Flame size={14} /> Analyze Impact
+                   </button>
+                </div>
               </>
             ) : (
               <>
@@ -222,6 +331,15 @@ export default function GraphView({ repoId }: { repoId: string }) {
                     <div className="text-right text-[#c9d1d9] font-mono">{hoverNode.metadata.returnType}</div>
                    </>
                 )}
+                
+                <div className="col-span-2 mt-2 pt-2 border-t border-[#30363d]">
+                   <button 
+                     onClick={(e) => { e.stopPropagation(); triggerBlastRadius(hoverNode); }}
+                     className="cursor-pointer w-full py-1.5 flex items-center justify-center gap-2 bg-[#ff5858]/10 hover:bg-[#ff5858]/20 text-[#ff5858] border border-[#ff5858]/30 hover:border-[#ff5858] rounded text-xs font-bold uppercase tracking-wider transition-all"
+                   >
+                     <Flame size={14} /> Analyze Impact
+                   </button>
+                </div>
               </>
             )}
           </div>
@@ -233,7 +351,7 @@ export default function GraphView({ repoId }: { repoId: string }) {
         graphData={visibleGraphData}
         nodeId="id"
         nodeLabel={() => ""} // disable native tooltip
-        onNodeHover={setHoverNode}
+        onNodeHover={handleNodeHover}
         nodeVal={(node: any) => node.type === "folder" ? Math.max(8, node.val) : node.val}
         
         // Custom canvas draw for nodes and their label text!
@@ -253,6 +371,17 @@ export default function GraphView({ repoId }: { repoId: string }) {
              color = ["function", "arrow", "method"].includes(node.type) ? "#d18616" :
                      ["class", "interface"].includes(node.type) ? "#4ec9b0" :
                      ["import", "export"].includes(node.type) ? "#c586c0" : "#569cd6";
+          }
+
+          // Handle Blast Radius Colors
+          if (blastRadius) {
+            if (node.id === blastRadius.targetId) {
+              color = "#ffffff"; // Epicenter
+            } else if (blastRadius.affectedNodeIds.has(node.id)) {
+              color = "#ff5858"; // Affected
+            } else {
+              color = "#30363d"; // Dim unaffected
+            }
           }
 
           const nodeSize = node.type === "folder" ? Math.max(8, node.val) : Math.max(4, node.val);
@@ -277,6 +406,16 @@ export default function GraphView({ repoId }: { repoId: string }) {
              ctx.strokeStyle = '#ffffff';
              ctx.lineWidth = 1.5 / globalScale;
              ctx.stroke();
+          } else if (blastRadius && blastRadius.targetId === node.id) {
+             // Epicenter highlight
+             ctx.strokeStyle = '#e3b341';
+             ctx.lineWidth = 3 / globalScale;
+             ctx.stroke();
+          } else if (blastRadius && blastRadius.affectedNodeIds.has(node.id)) {
+             // Affected nodes highlight
+             ctx.strokeStyle = '#ff5858';
+             ctx.lineWidth = 1.5 / globalScale;
+             ctx.stroke();
           }
 
           // Draw Text Label below node if zoomed in, or if it's a major folder
@@ -285,7 +424,9 @@ export default function GraphView({ repoId }: { repoId: string }) {
              ctx.font = `${fontSize}px Sans-Serif`;
              ctx.textAlign = 'center';
              ctx.textBaseline = 'middle';
-             ctx.fillStyle = node.type === "folder" ? '#e3b341' : (node.type === "file" ? '#8b949e' : '#a0a0a0'); 
+             let textColor = node.type === "folder" ? '#e3b341' : (node.type === "file" ? '#8b949e' : '#a0a0a0');
+             if (blastRadius && !blastRadius.affectedNodeIds.has(node.id)) textColor = "rgba(255,255,255,0.1)";
+             ctx.fillStyle = textColor; 
              ctx.fillText(label, node.x, textY);
           }
 
@@ -300,9 +441,22 @@ export default function GraphView({ repoId }: { repoId: string }) {
           }
         }}
         
-        linkDirectionalArrowLength={(link: any) => link.label === "contains" ? 0 : 3.5} 
+        linkDirectionalArrowLength={(link: any) => {
+           if (blastRadius && !blastRadius.affectedNodeIds.has(link.source?.id || link.source)) return 0;
+           return link.label === "contains" ? 0 : 3.5;
+        }} 
         linkDirectionalArrowRelPos={1}
-        linkColor={(link: any) => link.label === "contains" ? "rgba(139, 148, 158, 0.2)" : "rgba(88, 166, 255, 0.5)"} 
+        linkColor={(link: any) => {
+          if (blastRadius) {
+            const sId = link.source?.id || link.source;
+            const tId = link.target?.id || link.target;
+            if (blastRadius.affectedNodeIds.has(sId) && blastRadius.affectedNodeIds.has(tId)) {
+              return "rgba(255, 88, 88, 0.8)";
+            }
+            return "rgba(255, 255, 255, 0.02)"; // Dim unaffected
+          }
+          return link.label === "contains" ? "rgba(139, 148, 158, 0.2)" : "rgba(88, 166, 255, 0.5)";
+        }}
         
         // Custom canvas draw for edge labels
         linkCanvasObjectMode={() => 'after'}
@@ -318,6 +472,11 @@ export default function GraphView({ repoId }: { repoId: string }) {
 
           // Never show cluttered label text for hierarchy links
           if (link.label === "contains") return; 
+
+          // Hide text if blast radius is active and this link is not involved
+          if (blastRadius && (!blastRadius.affectedNodeIds.has(start.id) || !blastRadius.affectedNodeIds.has(end.id))) {
+             return;
+          }
 
           const textPos = { x: start.x + (end.x - start.x) / 2, y: start.y + (end.y - start.y) / 2 };
           const relLink = { x: end.x - start.x, y: end.y - start.y };
