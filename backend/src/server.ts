@@ -20,7 +20,7 @@ const startServer = async () => {
         {},
         {
             repeat: {
-                pattern: "* * * * *", // Cron expression for top of every hour
+                pattern: "0 * * * *", // Cron expression for top of every hour
             },
         }
     );
