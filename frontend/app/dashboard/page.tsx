@@ -120,7 +120,7 @@ export default function Dashboard() {
     };
 
     const deleteRepo = async (repoId: string) => {
-        const confirmDelete = confirm("Are you sure you want to delete this repository?");
+        const confirmDelete = confirm("NUCLEAR OPTION: Are you sure you want to nuke this repository? This will instantly and irreversibly delete all your code data, vectors, and chat history.");
         if (!confirmDelete) return;
 
         try {
@@ -278,7 +278,7 @@ export default function Dashboard() {
                                       onClick={() => deleteRepo(repo._id)}
                                       disabled={repo.status === "cloning" || repo.status === "indexing"}
                                       className="cursor-pointer flex justify-center items-center w-10 h-10 bg-[#21262d] hover:bg-[#da3633] text-[#8b949e] hover:text-white border border-[#30363d] hover:border-transparent rounded-xl transition-all duration-300 active:scale-90 shadow-sm group/btn ml-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#21262d] disabled:hover:text-[#8b949e]"
-                                      title="Delete Repository"
+                                      title="Nuke My Data"
                                   >
                                       <Trash2 size={16} className="group-hover/btn:scale-110 transition-transform" />
                                   </button>

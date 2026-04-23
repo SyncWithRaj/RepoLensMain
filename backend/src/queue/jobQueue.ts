@@ -21,3 +21,7 @@ export interface JobResult {
 export const repoQueue = new Queue<JobData, JobResult, string>("repo-processing-queue", {
     connection: redisConnection,
 });
+
+export const cleanupQueue = new Queue("cleanup-queue", {
+    connection: redisConnection,
+});

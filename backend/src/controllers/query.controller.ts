@@ -40,6 +40,10 @@ export const ask = async (req: Request, res: Response) => {
        );
     }
 
+    // Update lastAccessedAt for the repository
+    const { Repository } = await import("../models/repo.model.js");
+    await Repository.findByIdAndUpdate(repoId, { lastAccessedAt: new Date() });
+
     res.json({
       success: true,
       answer: result.answer,

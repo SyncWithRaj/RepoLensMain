@@ -11,6 +11,7 @@ export interface IRepository extends Document {
     jobId?: string;
     createdAt: Date;
     updatedAt: Date;
+    lastAccessedAt: Date;
 }
 
 const repoSchema = new Schema<IRepository>({
@@ -49,6 +50,11 @@ const repoSchema = new Schema<IRepository>({
     fingerprint: {
         type: String,
         index: true,
+    },
+    lastAccessedAt: {
+        type: Date,
+        default: Date.now,
+        index: true, // Useful for the cleanup query
     }
 }, {
     timestamps: true,

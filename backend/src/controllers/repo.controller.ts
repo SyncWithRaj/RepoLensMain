@@ -13,6 +13,7 @@ import { QdrantClient } from "@qdrant/js-client-rest";
 import { getTempRepoPath } from "../utils/cleanup.util.js";
 import { repoQueue } from "../queue/jobQueue.js";
 import { QueueEvents } from "bullmq";
+import { purgeRepository } from "../utils/purge.util.js";
 
 // Prevent Git from trying to prompt for credentials in server environments (Render, Docker, etc.)
 // GIT_TERMINAL_PROMPT=0 disables interactive prompts without injecting fake credentials
@@ -159,6 +160,10 @@ export const getRepositoryById = async (req: Request, res: Response) => {
             return res.status(404).json({ message: "Repo not found" });
         }
 
+        // Update lastAccessedAt
+        repo.lastAccessedAt = new Date();
+        await repo.save();
+
         res.json({
             success: true,
             repo,
@@ -170,83 +175,39 @@ export const getRepositoryById = async (req: Request, res: Response) => {
 
 export const deleteRepository = async (req: Request, res: Response) => {
     try {
-
         const repoId = req.params.id;
+        const user = (req as any).user;
 
-        const repo = await Repository.findById(repoId);
+        // Ensure user owns the repository before deleting
+        const repo = await Repository.findOne({ _id: repoId, user: user._id });
 
         if (!repo) {
             return res.status(404).json({
                 success: false,
-                message: "Repo not found"
+                message: "Repo not found or unauthorized"
             });
         }
 
-        // Temp clone is already deleted after parsing.
-        // Only attempt disk cleanup if localPath still exists (edge case)
-        if (repo.localPath && fs.existsSync(repo.localPath)) {
-            fs.rmSync(repo.localPath, { recursive: true, force: true });
-        }
+        const success = await purgeRepository(repoId);
 
-        const qdrant = new QdrantClient({
-            url: process.env.QDRANT_URL || "http://localhost:6333",
-            apiKey: process.env.QDRANT_API_KEY!,
-        });
-
-        const COLLECTION = "repo_entities";
-
-        // 🔍 check how many repos share fingerprint
-        const count = await Repository.countDocuments({
-            fingerprint: repo.fingerprint,
-        });
-
-        if (count === 1) {
-            try {
-                console.log("Attempting vector deletion for:", repo.fingerprint);
-
-                await qdrant.delete(COLLECTION, {
-                    filter: {
-                        must: [
-                            {
-                                key: "metadata.fingerprint",
-                                match: {
-                                    value: repo.fingerprint,
-                                },
-                            },
-                        ],
-                    },
-                });
-
-                console.log("✅ Vectors deleted (if existed)");
-            } catch (err: any) {
-                if (err?.status === 404) {
-                    console.log("⚠️ Collection not found → skip delete (safe)");
-                } else {
-                    console.error("❌ Qdrant delete error:", err);
-                }
-            }
+        if (success) {
+            res.json({
+                success: true,
+                message: "Repository and all related data deleted"
+            });
         } else {
-            console.log("Skipping vector deletion (shared by multiple users)");
+            res.status(500).json({
+                success: false,
+                message: "Failed to fully delete repository data"
+            });
         }
 
-        await CodeEntity.deleteMany({ repoId: repoId });
-        await CodeRelationship.deleteMany({ repoId: repoId });
-        await FileMetadata.deleteMany({ repoId: repoId });
-        await FileContent.deleteMany({ repoId: repoId });
-
-        await repo.deleteOne();
-
-        res.json({
-            success: true,
-            message: "Repository and all related data deleted"
-        });
     } catch (error) {
         console.error(error);
         res.status(500).json({
             success: false,
             message: "Failed to delete repository"
         });
-
     }
 };
 
