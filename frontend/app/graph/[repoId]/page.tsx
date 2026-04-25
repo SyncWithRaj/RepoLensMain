@@ -6,8 +6,9 @@ import api from "@/lib/axios";
 
 import GraphView from "@/components/graph/GraphView";
 import CodeEditor from "@/components/editor/CodeEditor";
+import DesignDocModal from "@/components/graph/DesignDocModal";
 import { Panel, Group, Separator } from "react-resizable-panels";
-import { Network, Settings, X, Files } from "lucide-react";
+import { Network, Settings, X, Files, FileText } from "lucide-react";
 import { useEditor } from "@/context/EditorContext";
 
 export default function GraphPage() {
@@ -15,6 +16,7 @@ export default function GraphPage() {
   const router = useRouter();
   const { editorState, setEditorState } = useEditor();
   const [repoValid, setRepoValid] = useState<boolean | null>(null);
+  const [isDesignDocOpen, setIsDesignDocOpen] = useState(false);
 
   useEffect(() => {
     const checkRepo = async () => {
@@ -56,6 +58,13 @@ export default function GraphPage() {
           title="Graph View"
         >
           <Network size={22} strokeWidth={1.5} />
+        </button>
+        <button 
+          onClick={() => setIsDesignDocOpen(true)}
+          className="p-2 rounded-xl transition text-[#8b949e] hover:text-[#58a6ff] hover:bg-[#21262d] hover:scale-105"
+          title="Generate System Design Docs"
+        >
+          <FileText size={22} strokeWidth={1.5} />
         </button>
         <div className="flex-grow"></div>
         <button className="p-2 text-[#8b949e] hover:text-[#c9d1d9] transition rounded-xl mb-2 hover:scale-110" title="Settings">
@@ -104,6 +113,12 @@ export default function GraphPage() {
 
         </Group>
       </div>
+
+      <DesignDocModal 
+        repoId={repoId as string} 
+        isOpen={isDesignDocOpen} 
+        onClose={() => setIsDesignDocOpen(false)} 
+      />
     </div>
   );
 }

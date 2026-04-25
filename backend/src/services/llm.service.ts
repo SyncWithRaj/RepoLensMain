@@ -15,7 +15,7 @@ const callGeminiAPI = async (prompt: string) => {
 
 // Configure the Circuit Breaker
 const breakerOptions = {
-  timeout: 15000, // If Gemini takes longer than 15s, trigger a failure
+  timeout: 45000, // Increased to 45s because complex prompts (like AST to Mermaid) take time
   errorThresholdPercentage: 50, // When 50% of requests fail, open the circuit
   resetTimeout: 30000, // After 30s, try one request to see if the API is back up
 };
@@ -23,8 +23,9 @@ const breakerOptions = {
 const geminiBreaker = new CircuitBreaker(callGeminiAPI, breakerOptions);
 
 // Fallback function: This runs if the breaker is OPEN or if a request fails/times out
-geminiBreaker.fallback(() => {
-  console.warn("[Circuit Breaker] Gemini API is down or timing out. Returning fallback message.");
+geminiBreaker.fallback((prompt: string, error?: Error) => {
+  console.error("❌ [Circuit Breaker] Gemini API is down or timing out.");
+  console.error("Actual Error:", error?.message || error || "Unknown error (likely timeout)");
   return "RepoLens AI is currently experiencing high load or the LLM provider is down. Please try again later. We gracefully degraded to protect system stability.";
 });
 
