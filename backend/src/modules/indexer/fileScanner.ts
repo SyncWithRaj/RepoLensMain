@@ -11,7 +11,7 @@ export interface ScannedFile{
 }
 
 // used set instead of array bcz of efficiency .has(ext) is faster than .includes(ext), Set lookup = O(1)
-const VALID_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".css", ".html"]);
+const VALID_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".css", ".html", ".py", ".go", ".rs", ".c", ".h", ".cpp", ".hpp", ".cc", ".cs", ".java", ".rb", ".php"]);
 
 const IGNORED_DIRECTIONS = new  Set([ "node_modules", ".git", "dist", "build", ".next", "coverage"]);
 
