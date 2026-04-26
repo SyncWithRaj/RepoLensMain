@@ -18,6 +18,13 @@ export const generateSystemDesignDoc = async (req: Request, res: Response): Prom
             return res.status(404).json({ success: false, message: "Repository not found" });
         }
 
+        if (repo.systemDesignDoc) {
+            return res.status(200).json({
+                success: true,
+                mermaid: repo.systemDesignDoc
+            });
+        }
+
         // Fetch limited data to avoid exceeding context limits
         const files = await FileMetadata.find({ repoId }).limit(100).lean();
         const entities = await CodeEntity.find({ repoId }).limit(200).lean();
@@ -51,6 +58,9 @@ IMPORTANT MERMAID SYNTAX RULES:
         console.log("=== GENERATED MERMAID SYNTAX ===");
         console.log(mermaidMarkdown);
         console.log("================================");
+
+        repo.systemDesignDoc = mermaidMarkdown;
+        await repo.save();
 
         return res.status(200).json({
             success: true,

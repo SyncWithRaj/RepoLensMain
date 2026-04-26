@@ -12,6 +12,8 @@ export interface IRepository extends Document {
     createdAt: Date;
     updatedAt: Date;
     lastAccessedAt: Date;
+    onboardingGuide?: any;
+    systemDesignDoc?: string;
 }
 
 const repoSchema = new Schema<IRepository>({
@@ -55,6 +57,12 @@ const repoSchema = new Schema<IRepository>({
         type: Date,
         default: Date.now,
         index: true, // Useful for the cleanup query
+    },
+    onboardingGuide: {
+        type: Schema.Types.Mixed,
+    },
+    systemDesignDoc: {
+        type: String,
     }
 }, {
     timestamps: true,

@@ -7,6 +7,7 @@ import { getRepositoryoRelations}from "../controllers/relationship.controller.js
 import { getRepoFilesController } from "../controllers/fileMetadata.controller.js";
 import { getRepositoryGraph } from "../controllers/graph.controller.js";
 import { generateSystemDesignDoc } from "../controllers/designDoc.controller.js";
+import { generateOnboardingGuide } from "../controllers/onboarding.controller.js";
 
 const router = Router();
 
@@ -23,5 +24,6 @@ router.get("/:id/relations", protect, getRepositoryoRelations)
 router.get("/:id/files", getRepoFilesController);
 router.get("/:id/graph", protect, getRepositoryGraph);
 router.get("/:id/design-doc", protect, generateSystemDesignDoc);
+router.get("/:id/onboarding", protect, generateOnboardingGuide);
 
 export default router;

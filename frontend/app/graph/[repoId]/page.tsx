@@ -7,8 +7,9 @@ import api from "@/lib/axios";
 import GraphView from "@/components/graph/GraphView";
 import CodeEditor from "@/components/editor/CodeEditor";
 import DesignDocModal from "@/components/graph/DesignDocModal";
+import OnboardingModal from "@/components/graph/OnboardingModal";
 import { Panel, Group, Separator } from "react-resizable-panels";
-import { Network, Settings, X, Files, FileText } from "lucide-react";
+import { Network, Settings, X, Files, FileText, BookOpen } from "lucide-react";
 import { useEditor } from "@/context/EditorContext";
 
 export default function GraphPage() {
@@ -17,6 +18,7 @@ export default function GraphPage() {
   const { editorState, setEditorState } = useEditor();
   const [repoValid, setRepoValid] = useState<boolean | null>(null);
   const [isDesignDocOpen, setIsDesignDocOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
   useEffect(() => {
     const checkRepo = async () => {
@@ -65,6 +67,13 @@ export default function GraphPage() {
           title="Generate System Design Docs"
         >
           <FileText size={22} strokeWidth={1.5} />
+        </button>
+        <button 
+          onClick={() => setIsOnboardingOpen(true)}
+          className="p-2 rounded-xl transition text-[#8b949e] hover:text-[#3fb950] hover:bg-[#21262d] hover:scale-105"
+          title="Generate Onboarding Guide"
+        >
+          <BookOpen size={22} strokeWidth={1.5} />
         </button>
         <div className="flex-grow"></div>
         <button className="p-2 text-[#8b949e] hover:text-[#c9d1d9] transition rounded-xl mb-2 hover:scale-110" title="Settings">
@@ -118,6 +127,11 @@ export default function GraphPage() {
         repoId={repoId as string} 
         isOpen={isDesignDocOpen} 
         onClose={() => setIsDesignDocOpen(false)} 
+      />
+      <OnboardingModal 
+        repoId={repoId as string} 
+        isOpen={isOnboardingOpen} 
+        onClose={() => setIsOnboardingOpen(false)} 
       />
     </div>
   );
