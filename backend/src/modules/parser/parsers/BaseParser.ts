@@ -8,6 +8,7 @@ export type ParsedEntity = {
     filePath: string;
     name: string;
     type: EntityType;
+    language: string;
     parameters: string[];
     returnType: string;
     startLine: number;
@@ -31,6 +32,7 @@ export type ParsedFileMetadata = {
     repoId: string;
     filePath: string;
     fileName: string;
+    language: string;
     fileSize: number;
     totalLines: number;
     hasDefaultExport: boolean;
@@ -40,6 +42,7 @@ export type ParsedFileMetadata = {
 }
 
 export interface LanguageParser {
+    languageName: string;
     parse(repoId: string, filePath: string, content: string): Promise<{
         entities: ParsedEntity[];
         relationships: ParsedRelationship[];
@@ -48,6 +51,8 @@ export interface LanguageParser {
 }
 
 export abstract class BaseParser implements LanguageParser {
+    abstract languageName: string;
+
     protected extractFileMetadata(repoId: string, filePath: string, content: string): ParsedFileMetadata {
         const fileName = filePath.split("/").pop() || "";
         let fileSize = 0;
@@ -68,6 +73,7 @@ export abstract class BaseParser implements LanguageParser {
             repoId,
             filePath,
             fileName,
+            language: this.languageName,
             fileSize,
             totalLines,
             hasDefaultExport: content.includes("export default"),
@@ -75,6 +81,35 @@ export abstract class BaseParser implements LanguageParser {
             isBackendFile,
             isTestFile
         };
+    }
+
+    protected createEntity(
+        repoId: string, filePath: string, node: any,
+        type: EntityType, name: string, depth: number, parentName: string | null,
+        parameters: string[] = [], returnType: string = "any"
+    ): ParsedEntity {
+        return {
+            repoId,
+            filePath,
+            name,
+            type,
+            language: this.languageName,
+            parameters,
+            returnType,
+            startLine: node.startPosition.row + 1,
+            endLine: node.endPosition.row + 1,
+            content: node.text,
+            scopeDepth: depth,
+            parentName
+        };
+    }
+
+    protected createRelationship(
+        repoId: string, fromName: string, fromFilePath: string,
+        toName: string, relationType: RelationType, line: number,
+        toFilePath?: string | null
+    ): ParsedRelationship {
+        return { repoId, fromName, fromFilePath, toName, toFilePath: toFilePath || null, relationType, line };
     }
 
     abstract parse(repoId: string, filePath: string, content: string): Promise<{

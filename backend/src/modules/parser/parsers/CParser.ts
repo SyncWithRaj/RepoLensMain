@@ -3,6 +3,7 @@ import C from "tree-sitter-c";
 import { BaseParser, type ParsedEntity, type ParsedRelationship, type ParsedFileMetadata } from "./BaseParser";
 
 export class CParser extends BaseParser {
+    languageName = "c";
     private parser: Parser;
 
     constructor() {
@@ -24,35 +25,43 @@ export class CParser extends BaseParser {
             if (seen.has(key)) return;
             seen.add(key);
 
-            let type: string | null = null;
-            let name = "anonymous";
-
             if (node.type === 'function_definition') {
-                type = "function";
                 const decl = node.childForFieldName('declarator');
-                if (decl) name = decl.childForFieldName('declarator')?.text || name;
-            } else if (node.type === 'struct_specifier' || node.type === 'enum_specifier') {
-                type = node.type === 'enum_specifier' ? "enum" : "class";
-                name = node.childForFieldName('name')?.text || name;
+                const name = decl?.childForFieldName('declarator')?.text || decl?.text?.split('(')[0] || "anonymous";
+                entities.push(this.createEntity(repoId, filePath, node, "function", name, depth, parentName));
+            } else if (node.type === 'struct_specifier') {
+                const name = node.childForFieldName('name')?.text || "anonymous";
+                entities.push(this.createEntity(repoId, filePath, node, "class", name, depth, parentName));
+            } else if (node.type === 'enum_specifier') {
+                const name = node.childForFieldName('name')?.text || "anonymous";
+                entities.push(this.createEntity(repoId, filePath, node, "enum", name, depth, parentName));
+            } else if (node.type === 'type_definition') {
+                entities.push(this.createEntity(repoId, filePath, node, "typeAlias", "typedef", depth, parentName));
             } else if (node.type === 'preproc_include') {
-                type = "import";
-                name = "import";
+                entities.push(this.createEntity(repoId, filePath, node, "import", "import", 0, null));
             }
 
-            if (type) {
-                entities.push({
-                    repoId,
-                    filePath,
-                    name,
-                    type: type as any,
-                    parameters: [],
-                    returnType: "any",
-                    startLine: node.startPosition.row + 1,
-                    endLine: node.endPosition.row + 1,
-                    content: node.text,
-                    scopeDepth: depth,
-                    parentName
-                });
+            // ── Relationships ──
+            if (node.type === 'call_expression') {
+                const func = node.childForFieldName('function');
+                if (func && parentName) {
+                    relationships.push(this.createRelationship(repoId, parentName, filePath, func.text, "calls", node.startPosition.row + 1));
+                }
+            }
+
+            if (node.type === 'preproc_include') {
+                const path = node.childForFieldName('path')?.text || "";
+                relationships.push(this.createRelationship(
+                    repoId, filePath.split('/').pop() || filePath, filePath,
+                    path.replace(/[<>"]/g, ""), "imports", node.startPosition.row + 1
+                ));
+            }
+
+            if (node.type === 'field_expression') {
+                const field = node.childForFieldName('field')?.text;
+                if (field && parentName) {
+                    relationships.push(this.createRelationship(repoId, parentName, filePath, field, "accesses", node.startPosition.row + 1));
+                }
             }
 
             for (let i = 0; i < node.childCount; i++) {
@@ -61,7 +70,6 @@ export class CParser extends BaseParser {
         };
 
         if (tree.rootNode) walk(tree.rootNode, 0, null);
-
         return { entities, relationships, fileMetadata };
     }
 
@@ -72,7 +80,7 @@ export class CParser extends BaseParser {
     private getScopeName(node: Parser.SyntaxNode) {
         if (node.type === 'function_definition') {
             const decl = node.childForFieldName('declarator');
-            return decl?.childForFieldName('declarator')?.text || null;
+            return decl?.childForFieldName('declarator')?.text || decl?.text?.split('(')[0] || null;
         }
         return null;
     }

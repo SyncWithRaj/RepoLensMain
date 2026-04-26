@@ -3,6 +3,7 @@ import Go from "tree-sitter-go";
 import { BaseParser, type ParsedEntity, type ParsedRelationship, type ParsedFileMetadata } from "./BaseParser";
 
 export class GoParser extends BaseParser {
+    languageName = "go";
     private parser: Parser;
 
     constructor() {
@@ -24,67 +25,74 @@ export class GoParser extends BaseParser {
             if (seen.has(key)) return;
             seen.add(key);
 
-            let type: string | null = null;
-            let name = "anonymous";
-            let parameters: string[] = [];
-
-            if (node.type === 'function_declaration' || node.type === 'method_declaration') {
-                type = node.type === 'method_declaration' ? "method" : "function";
-                name = node.childForFieldName('name')?.text || name;
+            // ── Entities ──
+            if (node.type === 'function_declaration') {
+                const name = node.childForFieldName('name')?.text || "anonymous";
+                entities.push(this.createEntity(repoId, filePath, node, "function", name, depth, parentName));
+            } else if (node.type === 'method_declaration') {
+                const name = node.childForFieldName('name')?.text || "anonymous";
+                // Extract receiver type as parentName
+                const receiver = node.childForFieldName('receiver');
+                let receiverType: string | null = null;
+                if (receiver) {
+                    // Receiver is like (r *Router) — extract the type
+                    receiverType = receiver.text.replace(/[*()\s]/g, '').split(/\s+/).pop() || null;
+                }
+                entities.push(this.createEntity(repoId, filePath, node, "method", name, depth, receiverType || parentName));
             } else if (node.type === 'type_declaration') {
-                type = "class"; 
                 for (let i = 0; i < node.childCount; i++) {
                     const child = node.child(i)!;
                     if (child.type === 'type_spec') {
-                        name = child.childForFieldName('name')?.text || name;
+                        const name = child.childForFieldName('name')?.text || "anonymous";
+                        const typeBody = child.childForFieldName('type');
+                        if (typeBody?.type === 'interface_type') {
+                            entities.push(this.createEntity(repoId, filePath, child, "interface", name, depth, parentName));
+                        } else if (typeBody?.type === 'struct_type') {
+                            entities.push(this.createEntity(repoId, filePath, child, "class", name, depth, parentName));
+                        } else {
+                            entities.push(this.createEntity(repoId, filePath, child, "typeAlias", name, depth, parentName));
+                        }
                     }
                 }
             } else if (node.type === 'import_spec') {
-                type = "import";
-                name = "import";
-            }
-
-            if (type) {
-                entities.push({
-                    repoId,
-                    filePath,
-                    name,
-                    type: type as any,
-                    parameters,
-                    returnType: "any",
-                    startLine: node.startPosition.row + 1,
-                    endLine: node.endPosition.row + 1,
-                    content: node.text,
-                    scopeDepth: depth,
-                    parentName
-                });
-            }
-
-            if (node.type === 'call_expression') {
-                const func = node.childForFieldName('function');
-                if (func) {
-                    relationships.push({
-                        repoId,
-                        fromName: parentName || "anonymous",
-                        fromFilePath: filePath,
-                        toName: func.text,
-                        relationType: "calls",
-                        line: node.startPosition.row + 1
-                    });
+                entities.push(this.createEntity(repoId, filePath, node, "import", "import", 0, null));
+            } else if (node.type === 'var_declaration' || node.type === 'const_declaration') {
+                // Top-level var/const
+                for (let i = 0; i < node.childCount; i++) {
+                    const spec = node.child(i)!;
+                    if (spec.type === 'var_spec' || spec.type === 'const_spec') {
+                        const name = spec.childForFieldName('name')?.text || spec.child(0)?.text;
+                        if (name) {
+                            entities.push(this.createEntity(repoId, filePath, spec, "variable", name, depth, parentName));
+                        }
+                    }
                 }
             }
 
+            // ── Relationships: calls ──
+            if (node.type === 'call_expression') {
+                const func = node.childForFieldName('function');
+                if (func && parentName) {
+                    relationships.push(this.createRelationship(repoId, parentName, filePath, func.text, "calls", node.startPosition.row + 1));
+                }
+            }
+
+            // ── Relationships: imports ──
             if (node.type === 'import_spec') {
                 const pathNode = node.childForFieldName('path');
                 if (pathNode) {
-                    relationships.push({
-                        repoId,
-                        fromName: filePath.split('/').pop() || filePath,
-                        fromFilePath: filePath,
-                        toName: pathNode.text.replace(/['"`]/g, ""),
-                        relationType: "imports",
-                        line: node.startPosition.row + 1
-                    });
+                    relationships.push(this.createRelationship(
+                        repoId, filePath.split('/').pop() || filePath, filePath,
+                        pathNode.text.replace(/['"]/g, ""), "imports", node.startPosition.row + 1
+                    ));
+                }
+            }
+
+            // ── Relationships: selector (field/method access) ──
+            if (node.type === 'selector_expression') {
+                const field = node.childForFieldName('field')?.text;
+                if (field && parentName) {
+                    relationships.push(this.createRelationship(repoId, parentName, filePath, field, "accesses", node.startPosition.row + 1));
                 }
             }
 
@@ -94,7 +102,6 @@ export class GoParser extends BaseParser {
         };
 
         if (tree.rootNode) walk(tree.rootNode, 0, null);
-
         return { entities, relationships, fileMetadata };
     }
 

@@ -88,19 +88,7 @@ ${entity?.content || ""}
 
     const vector = await embeddings.embedQuery(text);
 
-    // Dynamic language extraction based on extension
-    const ext = entity.filePath.split('.').pop()?.toLowerCase() || '';
-    const languageMap: Record<string, string> = {
-      'ts': 'typescript',
-      'tsx': 'typescript',
-      'js': 'javascript',
-      'jsx': 'javascript',
-      'html': 'html',
-      'css': 'css',
-      'json': 'json',
-      'md': 'markdown'
-    };
-    const language = languageMap[ext] || 'unknown';
+    const language = entity.language || 'unknown';
 
     points.push({
       id: uuidv4(), // UUID required by Qdrant

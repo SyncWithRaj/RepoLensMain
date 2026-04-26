@@ -5,6 +5,7 @@ export interface IFileMetadata extends Document {
     repoId: mongoose.Types.ObjectId;
     filePath: string;
     fileName: string;
+    language: string;
     fileSize: number;
     totalLines: number;
     hasDefaultExport: boolean;
@@ -28,6 +29,11 @@ const fileMetadataSchema = new Schema<IFileMetadata>(
         fileName: {
             type: String,
             required: true,
+        },
+        language: {
+            type: String,
+            default: "unknown",
+            index: true,
         },
         fileSize: {
             type: Number,

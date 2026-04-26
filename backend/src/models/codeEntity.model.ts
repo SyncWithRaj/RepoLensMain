@@ -6,6 +6,7 @@ export interface ICodeEntity extends Document {
     filePath: string;
     name: string;
     type: "function" | "class" | "method" | "constructor" | "property" | "staticMethod" | "arrow" | "interface" | "typeAlias" | "enum" | "variable" | "import" | "export" | "route" | "css" | "html";
+    language: string;
     parameters: string[];
     returnType: string;
     startLine: number;
@@ -36,6 +37,11 @@ const codeEntitySchema = new Schema<ICodeEntity>(
             type: String,
             enum: ["function", "class", "method", "constructor", "property", "staticMethod", "arrow", "interface", "typeAlias", "enum", "variable", "import", "export", "route", "css", "html"],
             required: true,
+        },
+        language: {
+            type: String,
+            default: "unknown",
+            index: true,
         },
         parameters: {
             type: [String],

@@ -3,10 +3,12 @@ import TypeScript from "tree-sitter-typescript";
 import { BaseParser, type ParsedEntity, type ParsedRelationship, type ParsedFileMetadata } from "./BaseParser";
 
 export class TypeScriptParser extends BaseParser {
+    languageName: string;
     private parser: Parser;
 
     constructor(isTsx: boolean = false) {
         super();
+        this.languageName = isTsx ? "typescript-tsx" : "typescript";
         this.parser = new Parser();
         this.parser.setLanguage(isTsx ? TypeScript.tsx : TypeScript.typescript);
     }
@@ -24,81 +26,69 @@ export class TypeScriptParser extends BaseParser {
             if (seen.has(key)) return;
             seen.add(key);
 
-            let type: string | null = null;
-            let name = "anonymous";
-            let parameters: string[] = [];
-            let returnType = "any";
-
             if (node.type === 'function_declaration') {
-                type = "function";
-                name = node.childForFieldName('name')?.text || name;
-                parameters = this.extractParameters(node.childForFieldName('parameters'));
+                const name = node.childForFieldName('name')?.text || "anonymous";
+                entities.push(this.createEntity(repoId, filePath, node, "function", name, depth, parentName, this.extractParameters(node.childForFieldName('parameters'))));
             } else if (node.type === 'arrow_function') {
-                type = "arrow";
+                let name = "anonymous_arrow";
                 if (node.parent?.type === 'variable_declarator') {
                     name = node.parent.childForFieldName('name')?.text || name;
                 }
-                parameters = this.extractParameters(node.childForFieldName('parameters'));
+                entities.push(this.createEntity(repoId, filePath, node, "arrow", name, depth, parentName, this.extractParameters(node.childForFieldName('parameters'))));
             } else if (node.type === 'method_definition') {
-                type = "method";
-                name = node.childForFieldName('name')?.text || name;
-                parameters = this.extractParameters(node.childForFieldName('parameters'));
+                const name = node.childForFieldName('name')?.text || "anonymous";
+                entities.push(this.createEntity(repoId, filePath, node, "method", name, depth, parentName, this.extractParameters(node.childForFieldName('parameters'))));
             } else if (node.type === 'class_declaration') {
-                type = "class";
-                name = node.childForFieldName('name')?.text || name;
+                const name = node.childForFieldName('name')?.text || "anonymous_class";
+                entities.push(this.createEntity(repoId, filePath, node, "class", name, depth, parentName));
+            } else if (node.type === 'interface_declaration') {
+                const name = node.childForFieldName('name')?.text || "anonymous";
+                entities.push(this.createEntity(repoId, filePath, node, "interface", name, depth, parentName));
+            } else if (node.type === 'type_alias_declaration') {
+                const name = node.childForFieldName('name')?.text || "anonymous";
+                entities.push(this.createEntity(repoId, filePath, node, "typeAlias", name, depth, parentName));
+            } else if (node.type === 'enum_declaration') {
+                const name = node.childForFieldName('name')?.text || "anonymous";
+                entities.push(this.createEntity(repoId, filePath, node, "enum", name, depth, parentName));
             } else if (node.type === 'variable_declarator') {
                 if (node.parent?.parent?.type === 'program' || node.parent?.parent?.type === 'export_statement') {
-                    type = "variable";
-                    name = node.childForFieldName('name')?.text || name;
+                    const init = node.childForFieldName('value');
+                    // Skip if the initializer is an arrow/function (they get their own entity)
+                    if (!init || (init.type !== 'arrow_function' && init.type !== 'function')) {
+                        const name = node.childForFieldName('name')?.text || "anonymous";
+                        entities.push(this.createEntity(repoId, filePath, node, "variable", name, depth, parentName));
+                    }
                 }
             } else if (node.type === 'import_statement') {
-                type = "import";
-                name = "import";
-                const source = node.childForFieldName('source')?.text;
-                if (source) returnType = source.replace(/['"`]/g, "");
+                const source = node.childForFieldName('source')?.text || "";
+                const cleanSource = source.replace(/['"`]/g, "");
+                entities.push(this.createEntity(repoId, filePath, node, "import", "import", depth, null, [], cleanSource));
+            } else if (node.type === 'export_statement') {
+                entities.push(this.createEntity(repoId, filePath, node, "export", "export", depth, null));
             }
 
-            if (type) {
-                entities.push({
-                    repoId,
-                    filePath,
-                    name,
-                    type: type as any,
-                    parameters,
-                    returnType,
-                    startLine: node.startPosition.row + 1,
-                    endLine: node.endPosition.row + 1,
-                    content: node.text,
-                    scopeDepth: depth,
-                    parentName
-                });
-            }
-
+            // ── Relationships ──
             if (node.type === 'call_expression') {
                 const func = node.childForFieldName('function');
-                if (func) {
-                    relationships.push({
-                        repoId,
-                        fromName: parentName || "anonymous",
-                        fromFilePath: filePath,
-                        toName: func.text,
-                        relationType: "calls",
-                        line: node.startPosition.row + 1
-                    });
+                if (func && parentName) {
+                    relationships.push(this.createRelationship(repoId, parentName, filePath, func.text, "calls", node.startPosition.row + 1));
                 }
             }
 
             if (node.type === 'import_statement') {
                 const source = node.childForFieldName('source')?.text;
                 if (source && (source.startsWith("'.") || source.startsWith('".') || source.startsWith('`.'))) {
-                    relationships.push({
-                        repoId,
-                        fromName: filePath.split('/').pop() || filePath,
-                        fromFilePath: filePath,
-                        toName: source.replace(/['"`]/g, ""),
-                        relationType: "imports",
-                        line: node.startPosition.row + 1
-                    });
+                    relationships.push(this.createRelationship(
+                        repoId, filePath.split('/').pop() || filePath, filePath,
+                        source.replace(/['"`]/g, ""), "imports", node.startPosition.row + 1
+                    ));
+                }
+            }
+
+            if (node.type === 'member_expression' || node.type === 'property_access_expression') {
+                const prop = node.childForFieldName('property')?.text;
+                if (prop && parentName) {
+                    relationships.push(this.createRelationship(repoId, parentName, filePath, prop, "accesses", node.startPosition.row + 1));
                 }
             }
 
@@ -107,10 +97,7 @@ export class TypeScriptParser extends BaseParser {
             }
         };
 
-        if (tree.rootNode) {
-            walk(tree.rootNode, 0, null);
-        }
-
+        if (tree.rootNode) walk(tree.rootNode, 0, null);
         return { entities, relationships, fileMetadata };
     }
 
@@ -119,7 +106,7 @@ export class TypeScriptParser extends BaseParser {
     }
     
     private getScopeName(node: Parser.SyntaxNode) {
-        if (node.type === 'function_declaration' || node.type === 'class_declaration' || node.type === 'method_definition') {
+        if (node.type === 'function_declaration' || node.type === 'class_declaration' || node.type === 'method_definition' || node.type === 'interface_declaration') {
             return node.childForFieldName('name')?.text || null;
         }
         if (node.type === 'arrow_function' && node.parent?.type === 'variable_declarator') {
