@@ -1,6 +1,33 @@
 import React, { useState, useEffect } from "react";
 import api from "@/lib/axios";
-import { X, BookOpen, Database, Layout, FileCode2, Map, ListOrdered, ChevronRight } from "lucide-react";
+import { X, BookOpen, Database, Layout, FileCode2, Map, ListOrdered, ChevronRight, Globe, Cog, Shapes, FlaskConical } from "lucide-react";
+
+interface SectionItem {
+  name: string;
+  file: string;
+  description: string;
+}
+
+interface GuideSection {
+  key: string;
+  title: string;
+  icon: string;
+  items: SectionItem[];
+}
+
+// New dynamic format
+interface DynamicGuideData {
+  sections: GuideSection[];
+  readingList: { order: number; file: string; reason: string }[];
+}
+
+// Legacy format for backward compat
+interface LegacyGuideData {
+  entryPoints?: { file: string; description: string }[];
+  mainSchemas?: { name: string; file: string; description: string }[];
+  coreUIComponents?: { name: string; file: string; description: string }[];
+  readingList?: { order: number; file: string; reason: string }[];
+}
 
 interface OnboardingModalProps {
   repoId: string;
@@ -8,21 +35,80 @@ interface OnboardingModalProps {
   onClose: () => void;
 }
 
-interface GuideData {
-  entryPoints: { file: string; description: string }[];
-  mainSchemas: { name: string; file: string; description: string }[];
-  coreUIComponents: { name: string; file: string; description: string }[];
-  readingList: { order: number; file: string; reason: string }[];
-}
+// Icon component mapper
+const ICON_MAP: Record<string, React.ReactNode> = {
+  entry:        <FileCode2 size={18} className="text-[#d2a8ff]" />,
+  data:         <Database size={18} className="text-[#3fb950]" />,
+  ui:           <Layout size={18} className="text-[#ff7b72]" />,
+  api:          <Globe size={18} className="text-[#f0883e]" />,
+  services:     <Cog size={18} className="text-[#58a6ff]" />,
+  abstractions: <Shapes size={18} className="text-[#d2a8ff]" />,
+  test:         <FlaskConical size={18} className="text-[#79c0ff]" />,
+};
 
 const formatPath = (fullPath: string) => {
   if (!fullPath) return "";
   return fullPath.replace(/^\/tmp\/repolens-repos\/[^\/]+\/[^\/]+\//, "");
 };
 
+// Convert legacy format to the new dynamic format
+function normalizeLegacyGuide(raw: any): DynamicGuideData {
+  // Already new format
+  if (raw.sections && Array.isArray(raw.sections)) {
+    return raw as DynamicGuideData;
+  }
+
+  // Convert legacy keys to sections array
+  const sections: GuideSection[] = [];
+
+  if (raw.entryPoints?.length) {
+    sections.push({
+      key: "entryPoints",
+      title: "Entry Points",
+      icon: "entry",
+      items: raw.entryPoints.map((ep: any) => ({
+        name: formatPath(ep.file),
+        file: ep.file,
+        description: ep.description,
+      })),
+    });
+  }
+
+  if (raw.mainSchemas?.length) {
+    sections.push({
+      key: "dataModels",
+      title: "Main Schemas & Models",
+      icon: "data",
+      items: raw.mainSchemas.map((ms: any) => ({
+        name: ms.name,
+        file: ms.file,
+        description: ms.description,
+      })),
+    });
+  }
+
+  if (raw.coreUIComponents?.length) {
+    sections.push({
+      key: "uiComponents",
+      title: "Core UI Components",
+      icon: "ui",
+      items: raw.coreUIComponents.map((ui: any) => ({
+        name: ui.name,
+        file: ui.file,
+        description: ui.description,
+      })),
+    });
+  }
+
+  return {
+    sections,
+    readingList: raw.readingList || [],
+  };
+}
+
 export default function OnboardingModal({ repoId, isOpen, onClose }: OnboardingModalProps) {
   const [loading, setLoading] = useState(true);
-  const [guide, setGuide] = useState<GuideData | null>(null);
+  const [guide, setGuide] = useState<DynamicGuideData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "walkthrough">("overview");
 
@@ -35,7 +121,9 @@ export default function OnboardingModal({ repoId, isOpen, onClose }: OnboardingM
       try {
         const res = await api.get(`/repos/${repoId}/onboarding`);
         if (res.data.success && res.data.guide) {
-          setGuide(res.data.guide);
+          // Normalize legacy or new format
+          const normalized = normalizeLegacyGuide(res.data.guide);
+          setGuide(normalized);
         } else {
           setError("Failed to parse guide data.");
         }
@@ -126,52 +214,32 @@ export default function OnboardingModal({ repoId, isOpen, onClose }: OnboardingM
                 {activeTab === "overview" && (
                   <div className="space-y-8 animate-fadeIn">
                     
-                    <section>
-                      <h3 className="flex items-center gap-2 text-[#c9d1d9] font-medium mb-4 pb-2 border-b border-[#30363d]">
-                        <FileCode2 size={18} className="text-[#d2a8ff]" />
-                        Entry Points
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {guide.entryPoints.map((item, idx) => (
-                          <div key={idx} className="bg-[#161b22] border border-[#30363d] p-4 rounded-xl hover:border-[#8b949e] transition">
-                            <h4 className="font-mono text-sm text-[#58a6ff] mb-2 break-all">{formatPath(item.file)}</h4>
-                            <p className="text-sm text-[#8b949e]">{item.description}</p>
-                          </div>
-                        ))}
+                    {guide.sections.length === 0 ? (
+                      <div className="text-center text-[#8b949e] py-12">
+                        <BookOpen className="mx-auto mb-4 opacity-40" size={48} />
+                        <p className="text-sm">No architectural sections detected for this repository.</p>
+                        <p className="text-xs mt-1">Try the Step-by-Step Tour tab for a reading guide.</p>
                       </div>
-                    </section>
-
-                    <section>
-                      <h3 className="flex items-center gap-2 text-[#c9d1d9] font-medium mb-4 pb-2 border-b border-[#30363d]">
-                        <Database size={18} className="text-[#3fb950]" />
-                        Main Schemas & Models
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {guide.mainSchemas.map((item, idx) => (
-                          <div key={idx} className="bg-[#161b22] border border-[#30363d] p-4 rounded-xl hover:border-[#8b949e] transition">
-                            <h4 className="font-semibold text-sm text-[#c9d1d9] mb-1">{item.name}</h4>
-                            <h5 className="font-mono text-xs text-[#58a6ff] mb-2 break-all">{formatPath(item.file)}</h5>
-                            <p className="text-sm text-[#8b949e]">{item.description}</p>
+                    ) : (
+                      guide.sections.map((section, sIdx) => (
+                        <section key={section.key || sIdx}>
+                          <h3 className="flex items-center gap-2 text-[#c9d1d9] font-medium mb-4 pb-2 border-b border-[#30363d]">
+                            {ICON_MAP[section.icon] || <FileCode2 size={18} className="text-[#8b949e]" />}
+                            {section.title}
+                            <span className="ml-auto text-xs text-[#484f58] font-normal">{section.items.length} items</span>
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {section.items.map((item, idx) => (
+                              <div key={idx} className="bg-[#161b22] border border-[#30363d] p-4 rounded-xl hover:border-[#8b949e] transition group">
+                                <h4 className="font-semibold text-sm text-[#c9d1d9] mb-1 group-hover:text-[#58a6ff] transition">{item.name}</h4>
+                                <h5 className="font-mono text-xs text-[#58a6ff] mb-2 break-all">{formatPath(item.file)}</h5>
+                                <p className="text-sm text-[#8b949e]">{item.description}</p>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </section>
-
-                    <section>
-                      <h3 className="flex items-center gap-2 text-[#c9d1d9] font-medium mb-4 pb-2 border-b border-[#30363d]">
-                        <Layout size={18} className="text-[#ff7b72]" />
-                        Core UI Components
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {guide.coreUIComponents.map((item, idx) => (
-                          <div key={idx} className="bg-[#161b22] border border-[#30363d] p-4 rounded-xl hover:border-[#8b949e] transition">
-                            <h4 className="font-semibold text-sm text-[#c9d1d9] mb-1">{item.name}</h4>
-                            <h5 className="font-mono text-xs text-[#58a6ff] mb-2 break-all">{formatPath(item.file)}</h5>
-                            <p className="text-sm text-[#8b949e]">{item.description}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </section>
+                        </section>
+                      ))
+                    )}
 
                   </div>
                 )}
